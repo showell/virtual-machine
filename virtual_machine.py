@@ -33,6 +33,8 @@ Operation of a finite virtual machine:
     to the exact set of numbers that would be accepted by the virtual
     machine when passed into the program.
 """
+
+import stepper
  
 EVEN_NUMBERS = [
     #            AX=0 AX=1 AX=2 AX=3
@@ -107,6 +109,19 @@ def run_progam(n, program):
 
     return status
                 
+def test_with_stepper(program, ax):
+    AX = ax
+    halted = False
+    accepted = False
+    for cmd in program:
+        (AX, halted, accepted) = stepper.step(
+            AX=AX,
+            halted=halted,
+            accepted=accepted,
+            cmd=cmd,
+        )
+    return accepted
+
 def assemble(program):
     ops = {"check": 1, "decr": 2}
     n = 0
@@ -201,5 +216,8 @@ def find_solutions_analytically():
         x = assemble(program)
         assert f(x) == y
         print(program, "solves", lang)
+        for i in range(4):
+            accepted = test_with_stepper(program, i)
+            assert accepted == (i in lang)
 
 find_solutions_analytically()
