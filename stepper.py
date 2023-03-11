@@ -32,35 +32,10 @@ assert OR(0, 1) == 1
 assert OR(1, 0) == 1
 assert OR(1, 1) == 1
 
-def IF(b, x, y):
-    return ADD(MULT(b, x), MULT(NOT(b), y))
-assert IF(0, 0, 0) == 0
-assert IF(0, 0, 1) == 1
-assert IF(0, 1, 0) == 0
-assert IF(0, 1, 1) == 1
-assert IF(1, 0, 0) == 0
-assert IF(1, 0, 1) == 0
-assert IF(1, 1, 0) == 1
-assert IF(1, 1, 1) == 1
-
 def ORR(x, y, z):
     return OR(OR(x, y), z)
 
-def step(*, AX, halted, accepted, cmd):
-    assert AX in [0, 1, 2, 3]
-    assert halted in [0, 1]
-    assert cmd in ["decr", "check"]
-    is_decr = cmd == "decr"
-
-    hb = AX // 2
-    lb = AX % 2
-
-    hb = VAR(hb, "hb")
-    lb = VAR(lb, "lb")
-    halted = VAR(halted, "halted")
-    accepted = VAR(accepted, "accepted")
-    is_decr = VAR(is_decr, "is_decr")
-
+def evaluate(*, hb, lb, halted, accepted, is_decr):
     is_3 = AND(hb, lb)
     is_2 = AND(hb, NOT(lb))
     is_1 = AND(NOT(hb), lb)
@@ -81,7 +56,35 @@ def step(*, AX, halted, accepted, cmd):
 
     halted = ORR(halted, accepted, AND(is_0, runs_decr))
 
-    AX = 0 * becomes_0 + 1 * becomes_1 + 2 * becomes_2 + 3 * becomes_3    
+    hb_set = OR(becomes_3, becomes_2)
+    lb_set = OR(becomes_3, becomes_1)
+
+    return (hb_set, lb_set, halted, accepted)
+
+def step(*, AX, halted, accepted, cmd):
+    assert AX in [0, 1, 2, 3]
+    assert halted in [0, 1]
+    assert cmd in ["decr", "check"]
+    is_decr = cmd == "decr"
+
+    hb = AX // 2
+    lb = AX % 2
+
+    hb = VAR(hb, "hb")
+    lb = VAR(lb, "lb")
+    halted = VAR(halted, "halted")
+    accepted = VAR(accepted, "accepted")
+    is_decr = VAR(is_decr, "is_decr")
+
+    (hb_set, lb_set, halted, accepted) = evaluate(
+        hb=hb,
+        lb=lb,
+        halted=halted,
+        accepted=accepted,
+        is_decr=is_decr,
+    )
+
+    AX = 2 * hb_set + lb_set
     return (AX, halted, accepted)
 
 
