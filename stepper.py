@@ -1,3 +1,6 @@
+def VAR(x, label):
+    return x
+
 def ADD(x, y):
     return x + y
 
@@ -9,9 +12,6 @@ def MULT(x, y):
 
 def DECR(x):
     return x - 1
-
-def VAR(x, label):
-    return x
 
 def NOT(x):
     return MULT(DECR(x), DECR(x))
