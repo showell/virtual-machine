@@ -46,57 +46,25 @@ assert IF(1, 1, 1) == 1
 def ORR(x, y, z):
     return OR(OR(x, y), z)
 
-def IS_0(x):
-    return int((x - 1) * (x-2) * (x-3) / -6)
-assert IS_0(3) == 0
-assert IS_0(2) == 0
-assert IS_0(1) == 0
-assert IS_0(0) == 1
-
-def IS_1(x):
-    return IF(IS_0(x), 0, IS_0(x-1))
-
-assert IS_1(3) == 0
-assert IS_1(2) == 0
-assert IS_1(1) == 1
-assert IS_1(0) == 0
-
-def IS_SMALL(x):
-    return OR(IS_0(x), IS_1(x))
-assert IS_SMALL(3) == 0
-assert IS_SMALL(2) == 0
-assert IS_SMALL(1) == 1
-assert IS_SMALL(0) == 1
-
-def IS_2(x):
-    return IF(IS_SMALL(x), 0, NOT(x - 2))
-assert IS_2(3) == 0
-assert IS_2(2) == 1
-assert IS_2(1) == 0
-assert IS_2(0) == 0
-
-def IS_3(x):
-    return IF(IS_SMALL(x), 0, x - 2)
-assert IS_3(3) == 1
-assert IS_3(2) == 0
-assert IS_3(1) == 0
-assert IS_3(0) == 0
-
 def step(*, AX, halted, accepted, cmd):
     assert AX in [0, 1, 2, 3]
     assert halted in [0, 1]
     assert cmd in ["decr", "check"]
     is_decr = cmd == "decr"
 
-    AX = VAR(AX, "x")
+    hb = AX // 2
+    lb = AX % 2
+
+    hb = VAR(hb, "hb")
+    lb = VAR(lb, "lb")
     halted = VAR(halted, "halted")
     accepted = VAR(accepted, "accepted")
     is_decr = VAR(is_decr, "is_decr")
 
-    is_3 = IS_3(AX)
-    is_2 = IS_2(AX)
-    is_1 = IS_1(AX)
-    is_0 = IS_0(AX)
+    is_3 = AND(hb, lb)
+    is_2 = AND(hb, NOT(lb))
+    is_1 = AND(NOT(hb), lb)
+    is_0 = AND(NOT(hb), NOT(lb))
 
     is_check = NOT(is_decr)
 
