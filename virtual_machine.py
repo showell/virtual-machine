@@ -188,7 +188,7 @@ def find_solutions():
         print('--')
         print()
 
-# find_solutions()
+find_solutions()
 
 def find_solutions_analytically():
     """

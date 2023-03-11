@@ -1,36 +1,31 @@
+class Expr:
+    def __init__(self, *, val, label):
+        self.val = val
+        self.label = label
+
 def VAR(x, label):
-    return x
+    return Expr(val=x, label=label)
 
 def ADD(x, y):
-    return x + y
+    return Expr(val=x.val + y.val, label=f"{x.label})+({y.label}")
 
 def SUB(x, y):
-    return x - y
+    return Expr(val=x.val - y.val, label=f"{x.label}-({y.label})")
 
 def MULT(x, y):
-    return x * y
+    return Expr(val=x.val * y.val, label=f"({x.label})*({y.label})")
 
 def DECR(x):
-    return x - 1
+    return Expr(val=x.val - 1, label=f"{x.label} - 1")
 
 def NOT(x):
     return MULT(DECR(x), DECR(x))
-assert NOT(0) == 1
-assert NOT(1) == 0
 
 def AND(x, y):
     return MULT(x, y)
-assert AND(0, 0) == 0
-assert AND(0, 1) == 0
-assert AND(1, 0) == 0
-assert AND(1, 1) == 1 
 
 def OR(x, y):
     return SUB(ADD(x,y), MULT(x,y))
-assert OR(0, 0) == 0
-assert OR(0, 1) == 1
-assert OR(1, 0) == 1
-assert OR(1, 1) == 1
 
 def ORR(x, y, z):
     return OR(OR(x, y), z)
@@ -70,11 +65,11 @@ def step(*, AX, halted, accepted, cmd):
     hb = AX // 2
     lb = AX % 2
 
-    hb = VAR(hb, "hb")
-    lb = VAR(lb, "lb")
-    halted = VAR(halted, "halted")
-    accepted = VAR(accepted, "accepted")
-    is_decr = VAR(is_decr, "is_decr")
+    hb = VAR(hb, "a")
+    lb = VAR(lb, "b")
+    halted = VAR(halted, "c")
+    accepted = VAR(accepted, "d")
+    is_decr = VAR(is_decr, "e")
 
     (hb_set, lb_set, halted, accepted) = evaluate(
         hb=hb,
@@ -83,9 +78,10 @@ def step(*, AX, halted, accepted, cmd):
         accepted=accepted,
         is_decr=is_decr,
     )
+    # print(lb_set.label)
 
-    AX = 2 * hb_set + lb_set
-    return (AX, halted, accepted)
+    AX = 2 * hb_set.val + lb_set.val
+    return (AX, halted.val, accepted.val)
 
 
 print(step(AX=0, halted=False, accepted=False, cmd="check"))
