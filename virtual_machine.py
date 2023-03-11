@@ -159,12 +159,47 @@ def find_solutions():
     for x in range(256):
         solutions[f(x)].append(x)
 
-    for y in reversed(range(16)):
+    for y in range(16):
         lang = language(y)
         x_list = solutions[y]
-        print(f"Since f(x) = {y} for all x in {set(x_list)}, {lang} is recognized by")
-        for x in x_list:
-            print("  ", disassemble(x))
+        programs = [disassemble(x) for x in x_list]
+        programs.sort(key=len)
+        shortest = programs[0]
+        print(f"f(x) = {y} for all x in {sorted(x_list)}")
+        print(f" the shortest program to recognize {lang} is:")
+        print('--')
+        for cmd in shortest:
+            print(cmd)
+        print('--')
         print()
 
-find_solutions()
+# find_solutions()
+
+def find_solutions_analytically():
+    """
+    This only finds the shortest solution to a language like [0, 1, 3].
+
+    It doesn't find clumsier solutions with redundant consecutive checks
+    and/or unreachable commands.
+    """
+    def solve(lang):
+        if not lang:
+            # The program can terminate to reject all further numbers
+            return []
+
+        program = []
+        while lang[0] > 0:
+            program.append("decr")
+            lang = [i-1 for i in lang]
+
+        return program + ["check"] + solve(lang[1:])
+
+    for y in range(16):
+        lang = language(y)
+        program = solve(lang)
+        assert len(program) < 8
+        x = assemble(program)
+        assert f(x) == y
+        print(program, "solves", lang)
+
+find_solutions_analytically()
