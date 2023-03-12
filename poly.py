@@ -14,6 +14,8 @@ class VarPower:
         return x ** self.power
 
     def __str__(self):
+        if self.power == 1:
+            return self.var
         return f"({self.var}**{self.power})"
 
 class Term:
@@ -95,6 +97,8 @@ class Term:
     def __str__(self):
         if not self.var_powers:
             return str(self.coeff)
+        if self.coeff == 1:
+            return self.sig()
         return str(self.coeff) + "*" + self.sig()
 
     @staticmethod
@@ -134,8 +138,8 @@ term = 3 * Term.vp(2, "x", 1)
 assert term.eval(x=10) == 60
 
 term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
-assert str(term) == "60*(x**1)*(y**22)"
-assert term.sig() == "(x**1)*(y**22)"
+assert str(term) == "60*x*(y**22)"
+assert term.sig() == "x*(y**22)"
 
 term = Term.vp(3, "x", 4) ** 3
 assert str(term) == "27*(x**12)"
@@ -145,7 +149,7 @@ x = Term.var("x")
 assert str(x**2 + 5*x**2) == "6*(x**2)"
 
 t = Term.var("y") * Term.var("x") ** 2
-assert str(t) == "1*(x**2)*(y**1)" 
+assert str(t) == "(x**2)*y" 
     
 x = Term.var("x")
 y = Term.var("y")
@@ -154,3 +158,22 @@ t = t.reduce(y=2)
 assert str(t) == "24*(x**99)"
 t = t.reduce(x=1)
 assert str(t) == "24"
+
+
+class Poly:
+    def __init__(self, terms):
+        if type(terms) == Term:
+            raise Exception("Pass in a list of Terms")
+        assert type(terms) == list
+        for term in terms:
+            assert type(term) == Term
+        self.terms = terms
+
+    def __str__(self):
+        return "+".join(str(term) for term in self.terms) 
+
+
+x = Term.var("x")
+y = Term.var("y")
+p = Poly([x, y])
+assert str(p) == "x+y"
