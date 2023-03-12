@@ -10,7 +10,7 @@ def VAR(x, label):
     return Expr(val=x, label=label)
 
 def ADD(x, y):
-    return Expr(val=x.val + y.val, label=f"{x.label})+({y.label}")
+    return Expr(val=x.val + y.val, label=f"{x.label}+{y.label}")
 
 def SUB(x, y):
     return Expr(val=x.val - y.val, label=f"{x.label}-({y.label})")
@@ -19,7 +19,7 @@ def MULT(x, y):
     return Expr(val=x.val * y.val, label=f"({x.label})*({y.label})")
 
 def DECR(x):
-    return Expr(val=x.val - 1, label=f"{x.label} - 1")
+    return Expr(val=x.val - 1, label=f"({x.label} - 1)")
 
 ONE = Expr(val=1, label="1")
 
