@@ -29,7 +29,6 @@ class Term:
         self.coeff = coeff
 
     def eval(self, **vars):
-        assert type(vars) == dict
         for var in vars:
             assert type(var) == str
             assert var in self.vars
@@ -38,6 +37,19 @@ class Term:
         for vp in self.var_powers:
             product *= vp.eval(vars[vp.var])
         return product
+
+    def reduce(self, **vars):
+        for var in vars:
+            assert type(var) == str
+            assert var in self.vars
+        new_coeff = self.coeff
+        new_vps = []
+        for vp in self.var_powers:
+            if vp.var in vars:
+                new_coeff *= vp.eval(vars[vp.var])
+            else:
+                new_vps.append(vp)
+        return Term(new_vps, new_coeff)
 
     def __add__(self, other):
         assert type(other) == Term
@@ -81,6 +93,8 @@ class Term:
         return "*".join(str(vp) for vp in self.var_powers)
 
     def __str__(self):
+        if not self.var_powers:
+            return str(self.coeff)
         return str(self.coeff) + "*" + self.sig()
 
     @staticmethod
@@ -133,3 +147,10 @@ assert str(x**2 + 5*x**2) == "6*(x**2)"
 t = Term.var("y") * Term.var("x") ** 2
 assert str(t) == "1*(x**2)*(y**1)" 
     
+x = Term.var("x")
+y = Term.var("y")
+t = 3 * (x ** 99) * (y ** 3)
+t = t.reduce(y=2)
+assert str(t) == "24*(x**99)"
+t = t.reduce(x=1)
+assert str(t) == "24"
