@@ -3,8 +3,8 @@ import collections
 class VarPower:
     def __init__(self, var, power):
         assert type(var) == str
-        assert not "," in var
-        assert not "*" in var
+        for c in ",*+/-()":
+            assert not c in var
         assert type(power) == int
         assert power >= 0
         self.var = var
@@ -28,7 +28,7 @@ class Term:
         assert len(self.vars) == len(set(self.vars))
         self.coeff = coeff
 
-    def eval(self, vars):
+    def eval(self, **vars):
         assert type(vars) == dict
         for var in vars:
             assert type(var) == str
@@ -108,16 +108,16 @@ assert vpx.eval(2) == 8
 
 term = Term([vpn, vpx], 3)
 assert str(term) == "3*(n**5)*(x**3)"
-assert term.eval(dict(n=2, x=4)) == 3 * (2 ** 5) * (4 ** 3)
+assert term.eval(n=2, x=4) == 3 * (2 ** 5) * (4 ** 3)
 
 term = Term.constant(17)
-assert term.eval(dict()) == 17
+assert term.eval() == 17
 
 term = Term.vp(5, "x", 2)
-assert term.eval(dict(x=4)) == 80
+assert term.eval(x=4) == 80
 
 term = 3 * Term.vp(2, "x", 1)
-assert term.eval(dict(x=10)) == 60
+assert term.eval(x=10) == 60
 
 term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
 assert str(term) == "60*(x**1)*(y**22)"
@@ -132,3 +132,4 @@ assert str(x**2 + 5*x**2) == "6*(x**2)"
 
 t = Term.var("y") * Term.var("x") ** 2
 assert str(t) == "1*(x**2)*(y**1)" 
+    
