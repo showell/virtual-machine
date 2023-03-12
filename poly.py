@@ -1,3 +1,5 @@
+import collections
+
 class VarPower:
     def __init__(self, var, power):
         assert type(var) == str
@@ -36,12 +38,39 @@ class Term:
             product *= vp.eval(vars[vp.var])
         return product
 
+    def __mul__(self, other):
+        if type(other) == int:
+            return Term(self.var_powers, self.coeff * other)
+        elif type(other) == Term:
+            return self.multiply_terms(other)
+        else:
+            assert False
+
+    def multiply_terms(self, other):
+        coeff = self.coeff * other.coeff
+        powers = collections.defaultdict(int)
+        for vp in self.var_powers:
+            powers[vp.var] = vp.power
+        for vp in other.var_powers:
+            powers[vp.var] += vp.power
+        parms = list(powers.items())
+        parms.sort()
+        vps = [VarPower(var, power) for var, power in parms]
+        return Term(vps, coeff)
+
     def __str__(self):
         return str(self.coeff) + "*" + "*".join(str(vp) for vp in self.var_powers)
 
     @staticmethod
     def constant(c):
         return Term([], c) 
+
+    @staticmethod
+    def vp(c, var, power):
+        assert type(c) == int
+        assert type(var) == str
+        assert type(power) == int
+        return Term([VarPower(var, power)], c)
 
 vpn = VarPower("n", 5) 
 assert str(vpn) == "(n**5)"
@@ -57,3 +86,12 @@ assert term.eval(dict(n=2, x=4)) == 3 * (2 ** 5) * (4 ** 3)
 
 term = Term.constant(17)
 assert term.eval(dict()) == 17
+
+term = Term.vp(5, "x", 2)
+assert term.eval(dict(x=4)) == 80
+
+term = Term.vp(2, "x", 1) * 3
+assert term.eval(dict(x=10)) == 60
+
+term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
+assert str(term) == "60*(x**1)*(y**22)"
