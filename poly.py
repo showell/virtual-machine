@@ -4,6 +4,7 @@ class VarPower:
     def __init__(self, var, power):
         assert type(var) == str
         assert not "," in var
+        assert not "*" in var
         assert type(power) == int
         assert power >= 0
         self.var = var
@@ -58,8 +59,11 @@ class Term:
         vps = [VarPower(var, power) for var, power in parms]
         return Term(vps, coeff)
 
+    def sig(self):
+        return "*".join(str(vp) for vp in self.var_powers)
+
     def __str__(self):
-        return str(self.coeff) + "*" + "*".join(str(vp) for vp in self.var_powers)
+        return str(self.coeff) + "*" + self.sig()
 
     @staticmethod
     def constant(c):
@@ -95,3 +99,4 @@ assert term.eval(dict(x=10)) == 60
 
 term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
 assert str(term) == "60*(x**1)*(y**22)"
+assert term.sig() == "(x**1)*(y**22)"
