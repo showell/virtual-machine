@@ -39,6 +39,25 @@ Operation of a finite virtual machine:
     "language" that is a subset of {0, 1, 2, 3}.  That language corresponds
     to the exact set of numbers that would be accepted by the virtual
     machine when passed into the program.
+
+    SOME LANGUAGES (phrased as questions):
+
+        is_tiny [0]
+        is_not_tiny [1, 2, 3]
+        is_huge [3]
+        is_not_huge [0, 1, 2]
+        is_small [0, 1]
+        is_big [2, 3]
+        is_even [0, 2]
+        is_odd [1, 3]
+        is_middling [1, 2]
+        is_extreme [0, 3]
+        is_one [1]
+        is_not_one [0, 2, 3]
+        is_two [2]
+        is_not_two [0, 1, 3]
+        always_false []
+        always_true [0, 1, 2, 3]
 """
 
 import stepper
