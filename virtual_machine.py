@@ -9,23 +9,30 @@ Operation of a finite virtual machine:
 
     Every program is a sequence of these opcodes (aka instructions):
 
-        0 (check):
+        0 (pass):
+            (do nothing)
+
+        1 (check):
             AX = 3 -> ignore and continue
             AX = 2 -> ignore and continue
             AX = 1 -> ignore and continue
             AX = 0 -> halt and accept input
 
-        1 (decr):
+        2 (decr):
             AX = 3 -> AX = 2 and continue
             AX = 2 -> AX = 1 and continue
             AX = 1 -> AX = 0 and continue
             AX = 0 -> halt and reject input
 
-    If the virtual machine runs out of instructions to execute when
-    running a program, then it will also reject the input.
+        3 (mod2):
+            AX = 3 -> AX = 1
+            AX = 2 -> AX = 0
+            AX = 1 -> AX = 1
+            AX = 0 -> AX = 0
 
-    Also, any program longer than 8 instructions is considered invalid
-    and the virtual machine rejects all inputs.
+    Every program must include exactly 8 instructions.  If at the end
+    of that program you have not accepted the input, then the input is
+    implicitly rejected.
 
     If a user wants to validate an input, they can put that number into
     AX and run their program. By definition every program "recognizes" some
@@ -36,79 +43,39 @@ Operation of a finite virtual machine:
 
 import stepper
  
-EVEN_NUMBERS = [
-    #            AX=0 AX=1 AX=2 AX=3
-    "check",   # acc  -    -    -
-    "decr",    #      AX=0 AX=1 AX=2
-    "decr",    #      rej  AX=0 AX=1
-    "check",   #           acc  -
-               #                rej
-               #  0         2
-]
-
-ODD_NUMBERS = [
-    #            AX=0 AX=1 AX=2 AX=3
-    "decr",    # rej  AX=0 AX=1 AX=2
-    "check",   #      acc  -    -
-    "decr",    #           AX=0 AX=1
-    "decr",    #           rej  AX=0
-    "check",   #                acc
-               #      1         3
-]
-
-BIG_NUMBERS = [
-    "decr",
-    "decr",
-    "check",
-    "decr",
-    "check",
-]
-
-SMALL_NUMBERS = [
-    "check",
-    "decr",
-    "check",
-]
-
-JUST_TWO = [
-    "decr",
-    "decr",
-    "check",
-]
-
-# This is only the most obvious solution.
-EMPTY_SET = [
-    # no instructions, just fail
-]
-
 def run_progam(n, program):
     halted = False
     AX = n
     status = None
 
-    if len(program) > 8:
-        return False
+    assert len(program) == 8
     
     for op in program:
         if halted:
             continue
-        if op == "decr":
-            if AX == 0:
-               halted = True
-               status = False
-            else:
-                AX -= 1
+        if op == "pass":
+            pass
         elif op == "check":
             if AX == 0:
                 halted = True
                 status = True
             else:
                 pass
+        elif op == "decr":
+            if AX == 0:
+               halted = True
+               status = False
+            else:
+                AX -= 1
+        elif op == "mod2":
+            AX = AX % 2
         else:
             assert False
 
     return status
                 
+OPS = {"pass": 0, "check": 1, "decr": 2, "mod2": 3}
+
 def test_with_stepper(program, ax):
     AX = ax
     halted = False
@@ -118,28 +85,23 @@ def test_with_stepper(program, ax):
             AX=AX,
             halted=halted,
             accepted=accepted,
-            cmd=cmd,
+            op=OPS[cmd],
         )
     return accepted
 
 def assemble(program):
-    ops = {"check": 1, "decr": 2}
-    n = 0
-    for i, op in enumerate(program):
-        n *= 2
-        n += ops[op]
-    return n
+    return sum(OPS[op] * (4**i) for i, op in enumerate(program))
 
 def disassemble(n):
-    if n == 0:
-        return []
-    elif n % 2 == 0:
-        return disassemble((n - 2) // 2) + ["decr"]
-    else:
-        return disassemble((n - 1) // 2) + ["check"]
+    ops = ["pass", "check", "decr", "mod2"]
+    program = []
+    for i in range(8):
+        program.append(ops[n % 4])
+        n = n // 4
+    return program
         
-assert assemble(["check", "decr"]) == 4
-assert disassemble(4) == ["check", "decr"]
+assert assemble(["check", "decr"]) == 9
+assert disassemble(9) == ["check", "decr"] + ["pass"] * 6
 
 def encoded_language(lang):
     return sum(2**n for n in lang)
@@ -171,31 +133,31 @@ def find_solutions():
     solutions = {}
     for y in range(16):
         solutions[y] = []
-    for x in range(256):
+    for x in range(4**8):
         solutions[f(x)].append(x)
 
     for y in range(16):
         lang = language(y)
         x_list = solutions[y]
         programs = [disassemble(x) for x in x_list]
-        programs.sort(key=len)
-        shortest = programs[0]
-        print(f"f(x) = {y} for all x in {sorted(x_list)}")
-        print(f" the shortest program to recognize {lang} is:")
+        print(f"f(x) = {y} for {len(x_list)} values of x")
+        print(f" an example program to recognize {lang} is:")
         print('--')
-        for cmd in shortest:
+        example_program = programs[0]
+        for cmd in example_program:
             print(cmd)
         print('--')
         print()
+
+        for i in range(4):
+            accepted = test_with_stepper(example_program, i)
+            assert accepted == (i in lang)
 
 find_solutions()
 
 def find_solutions_analytically():
     """
-    This only finds the shortest solution to a language like [0, 1, 3].
-
-    It doesn't find clumsier solutions with redundant consecutive checks
-    and/or unreachable commands.
+    This only finds one solution to a language like [0, 1, 3].
     """
     def solve(lang):
         if not lang:
@@ -209,10 +171,14 @@ def find_solutions_analytically():
 
         return program + ["check"] + solve(lang[1:])
 
+    def pad_with_passes(program):
+        return program + ["pass"] * (8 - len(program))
+
     for y in range(16):
         lang = language(y)
         program = solve(lang)
         assert len(program) < 8
+        program = pad_with_passes(program)
         x = assemble(program)
         assert f(x) == y
         print(program, "solves", lang)
@@ -220,4 +186,4 @@ def find_solutions_analytically():
             accepted = test_with_stepper(program, i)
             assert accepted == (i in lang)
 
-find_solutions_analytically()
+# find_solutions_analytically()
