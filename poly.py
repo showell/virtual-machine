@@ -11,7 +11,7 @@ class VarPower:
         return x ** self.power
 
     def __str__(self):
-        return f"({self.var} ** {self.power})"
+        return f"({self.var}**{self.power})"
 
 class Term:
     def __init__(self, var_powers, coeff):
@@ -36,19 +36,23 @@ class Term:
             product *= vp.eval(vars[vp.var])
         return product
 
+    def __str__(self):
+        return str(self.coeff) + "*" + "*".join(str(vp) for vp in self.var_powers)
+
     @staticmethod
     def constant(c):
         return Term([], c) 
 
 vpn = VarPower("n", 5) 
-assert str(vpn) == "(n ** 5)"
+assert str(vpn) == "(n**5)"
 assert vpn.eval(2) == 32
 
 vpx = VarPower("x", 3) 
-assert str(vpx) == "(x ** 3)"
+assert str(vpx) == "(x**3)"
 assert vpx.eval(2) == 8
 
 term = Term([vpn, vpx], 3)
+assert str(term) == "3*(n**5)*(x**3)"
 assert term.eval(dict(n=2, x=4)) == 3 * (2 ** 5) * (4 ** 3)
 
 term = Term.constant(17)
