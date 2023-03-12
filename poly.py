@@ -39,13 +39,31 @@ class Term:
             product *= vp.eval(vars[vp.var])
         return product
 
-    def __mul__(self, other):
+    def __add__(self, other):
+        assert type(other) == Term
+        assert len(self.var_powers) == len(other.var_powers)
+        assert self.sig() == other.sig()
+        return Term(self.var_powers, self.coeff + other.coeff)
+
+    def __rmul__(self, other):
         if type(other) == int:
             return Term(self.var_powers, self.coeff * other)
         elif type(other) == Term:
             return self.multiply_terms(other)
         else:
             assert False
+
+    def __mul__(self, other):
+        return self.__rmul__(other)
+
+    def __neg__(self):
+        return Term(self.var_powers, -1 * self.coeff)
+
+    def __pow__(self, other):
+        assert type(other) == int
+        coeff = self.coeff ** other
+        vps = [VarPower(vp.var, vp.power * other) for vp in self.var_powers]
+        return Term(vps, coeff)
 
     def multiply_terms(self, other):
         coeff = self.coeff * other.coeff
@@ -64,6 +82,10 @@ class Term:
 
     def __str__(self):
         return str(self.coeff) + "*" + self.sig()
+
+    @staticmethod
+    def var(var):
+        return Term([VarPower(var, 1)], 1)
 
     @staticmethod
     def constant(c):
@@ -94,9 +116,19 @@ assert term.eval(dict()) == 17
 term = Term.vp(5, "x", 2)
 assert term.eval(dict(x=4)) == 80
 
-term = Term.vp(2, "x", 1) * 3
+term = 3 * Term.vp(2, "x", 1)
 assert term.eval(dict(x=10)) == 60
 
 term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
 assert str(term) == "60*(x**1)*(y**22)"
 assert term.sig() == "(x**1)*(y**22)"
+
+term = Term.vp(3, "x", 4) ** 3
+assert str(term) == "27*(x**12)"
+assert str(-term) == "-27*(x**12)"
+
+x = Term.var("x")
+assert str(x**2 + 5*x**2) == "6*(x**2)"
+
+t = Term.var("y") * Term.var("x") ** 2
+assert str(t) == "1*(x**2)*(y**1)" 
