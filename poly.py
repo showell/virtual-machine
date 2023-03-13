@@ -170,10 +170,7 @@ class Poly:
         self.simplify()
 
     def __add__(self, other):
-        if type(other) == int:
-            other = Poly.constant(other)
-        assert type(other) == Poly
-        return Poly(self.terms + other.terms)
+        return self.__radd__(other)
 
     def __sub__(self, other):
         return self + other * (-1)
@@ -183,6 +180,21 @@ class Poly:
 
     def __neg__(self):
         return self * (-1)
+
+    def __pow__(self, n):
+        assert n >= 0
+        assert type(n) == int
+        if n == 0:
+            return Poly.constant(1)
+        if n == 1:
+            return self
+        return self * self ** (n - 1)
+
+    def __radd__(self, other):
+        if type(other) == int:
+            other = Poly.constant(other)
+        assert type(other) == Poly
+        return Poly(self.terms + other.terms)
 
     def __rmul__(self, other):
         if type(other) == int:

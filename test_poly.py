@@ -78,4 +78,14 @@ diff_squares = (x+y) * (x-y)
 assert str(diff_squares) == "(x**2)+(-1)*(y**2)"
 assert str(diff_squares.reduce(x=16)) == "256+(-1)*(y**2)"
 
+assert str(x**0) == "1"
+assert str((x+y)**1) == "x+y"
+assert str(x**2)=="(x**2)"
+assert str((x+y)**2) == "(x**2)+2*x*y+(y**2)"
+p = (x**2+y)**3
+assert str(p) == "(x**6)+3*(x**4)*y+3*(x**2)*(y**2)+(y**3)"
+assert str(p.reduce(y=1)) == "(x**6)+3*(x**4)+3*(x**2)+1"
 
+
+assert str(1+x) == "x+1"
+assert str((1+x)**2) == "(x**2)+2*x+1"
