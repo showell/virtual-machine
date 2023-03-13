@@ -34,6 +34,7 @@ assert str(x**2 + 5*x**2) == "6*(x**2)"
 
 t = Term.var("y") * Term.var("x") ** 2
 assert str(t) == "(x**2)*y" 
+assert t.vars() == {"x", "y"}
     
 x = Term.var("x")
 y = Term.var("y")

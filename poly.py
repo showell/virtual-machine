@@ -43,9 +43,9 @@ class Term:
             assert (type(var_power)) == VarPower
         assert type(coeff) == int
         self.var_powers = var_powers
-        self.vars = [vp.var for vp in var_powers]
-        assert self.vars == sorted(self.vars)
-        assert len(self.vars) == len(set(self.vars))
+        vars = [vp.var for vp in var_powers]
+        assert vars == sorted(vars)
+        assert len(vars) == len(set(vars))
         self.coeff = coeff
 
     def __add__(self, other):
@@ -90,11 +90,14 @@ class Term:
         """
         for var in vars:
             assert type(var) == str
-        assert set(vars) & set(self.vars) == set(self.vars)
+        assert set(vars) & self.vars() == self.vars()
         product = self.coeff
         for vp in self.var_powers:
             product *= vp.eval(vars[vp.var])
         return product
+
+    def vars(self):
+        return {vp.var for vp in self.var_powers}
 
     def multiply_terms(self, other):
         coeff = self.coeff * other.coeff
