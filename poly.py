@@ -31,19 +31,25 @@ class Term:
         self.coeff = coeff
 
     def eval(self, **vars):
+        """
+        If we get passed in vars that we don't know about,
+        just ignore them.
+        """
         for var in vars:
             assert type(var) == str
-            assert var in self.vars
-        assert len(vars) == len(self.vars)
+        assert set(vars) & set(self.vars) == set(self.vars)
         product = self.coeff
         for vp in self.var_powers:
             product *= vp.eval(vars[vp.var])
         return product
 
     def reduce(self, **vars):
+        """
+        If we get passed in vars that we don't know about,
+        just ignore them.
+        """
         for var in vars:
             assert type(var) == str
-            assert var in self.vars
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
@@ -163,17 +169,32 @@ assert str(t) == "24"
 class Poly:
     def __init__(self, terms):
         if type(terms) == Term:
-            raise Exception("Pass in a list of Terms")
+            raise Exception("Pass in a list of Terms or use Poly's other constructors.")
         assert type(terms) == list
         for term in terms:
             assert type(term) == Term
         self.terms = terms
 
+    def eval(self, **vars):
+        return sum(term.eval(**vars) for term in self.terms)
+
+    def reduce(self, **vars):
+        return Poly([term.reduce(**vars) for term in self.terms])
+
     def __str__(self):
         return "+".join(str(term) for term in self.terms) 
+
+    @staticmethod
+    def var(label):
+        return Poly([Term.var(label)])
 
 
 x = Term.var("x")
 y = Term.var("y")
 p = Poly([x, y])
 assert str(p) == "x+y"
+assert p.eval(x=5, y=2) == 7
+assert str(p.reduce(x=8)) == "8+y"
+
+x = Poly.var("height")
+assert str(x) == "height"
