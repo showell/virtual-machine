@@ -27,7 +27,7 @@ assert term.sig() == "x*(y**22)"
 
 term = Term.vp(3, "x", 4) ** 3
 assert str(term) == "27*(x**12)"
-assert str(-term) == "-27*(x**12)"
+assert str(-term) == "(-27)*(x**12)"
 
 x = Term.var("x")
 assert str(x**2 + 5*x**2) == "6*(x**2)"
@@ -53,8 +53,8 @@ assert str(p) == "x+y"
 assert p.eval(x=5, y=2) == 7
 assert str(p.reduce(x=8)) == "8+y"
 
-x = Poly.var("height")
-assert str(x) == "height"
+h = Poly.var("height")
+assert str(h) == "height"
 
 n = Poly.var("n")
 assert str(n+2) == "n+2"
@@ -70,5 +70,12 @@ assert str(p.reduce(y=4)) == "3*x+4"
 
 assert str(x+x) == "2*x"
 
+assert str(-(x+x)) == "(-2)*x"
+
+assert str(x+y+z-y) == "x+z"
+
+diff_squares = (x+y) * (x-y)
+assert str(diff_squares) == "(x**2)+(-1)*(y**2)"
+assert str(diff_squares.reduce(x=16)) == "256+(-1)*(y**2)"
 
 

@@ -103,11 +103,13 @@ class Term:
         return "*".join(str(vp) for vp in self.var_powers)
 
     def __str__(self):
+        c = self.coeff
+        c_str = str(c) if c > 0 else f"({c})"
         if not self.var_powers:
-            return str(self.coeff)
+            return c_str
         if self.coeff == 1:
             return self.sig()
-        return str(self.coeff) + "*" + self.sig()
+        return c_str + "*" + self.sig()
 
     @staticmethod
     def sum(terms):
@@ -180,14 +182,23 @@ class Poly:
         assert type(other) == Poly
         return Poly(self.terms + other.terms)
 
+    def __sub__(self, other):
+        return self + other * (-1)
+
     def __mul__(self, other):
         return self.__rmul__(other)
 
     def __rmul__(self, other):
         if type(other) == int:
             return Poly([term * other for term in self.terms])
-        else:
-            assert False
+        elif type(other) == Term:
+            raise Exception("Use Poly contructors to build up terms.")
+        assert type(other) == Poly
+        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
+        return Poly(terms)
+
+    def __neg__(self):
+        return self * (-1)
 
     @staticmethod
     def constant(c):
