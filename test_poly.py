@@ -68,7 +68,7 @@ assert str(2*(x+y)) == "2*x+2*y"
 p = 3*x + y
 assert str(p.reduce(y=4)) == "3*x+4"
 
-
+assert str(x+x) == "2*x"
 
 
 

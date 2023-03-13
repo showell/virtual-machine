@@ -110,6 +110,22 @@ class Term:
         return str(self.coeff) + "*" + self.sig()
 
     @staticmethod
+    def sum(terms):
+        # This is a helper for Poly.
+        assert len(terms) >= 1
+        if len(terms) == 1:
+            return terms[0]
+
+        term = terms[0]
+        sig = term.sig()
+        for other in terms[1:]:
+            assert type(other) == Term
+            assert other.sig() == sig
+            term += other
+
+        return term
+
+    @staticmethod
     def var(var):
         return Term([VarPower(var, 1)], 1)
 
@@ -133,6 +149,21 @@ class Poly:
         for term in terms:
             assert type(term) == Term
         self.terms = terms
+        self.simplify()
+
+    def simplify(self):
+        buckets = collections.defaultdict(list)
+        for term in self.terms:
+            sig = term.sig()
+            buckets[sig].append(term)
+
+        new_terms = []
+        for sub_terms in buckets.values():
+            term = Term.sum(sub_terms)
+            if term.coeff != 0:
+                new_terms.append(term)
+
+        self.terms = new_terms
 
     def eval(self, **vars):
         return sum(term.eval(**vars) for term in self.terms)
