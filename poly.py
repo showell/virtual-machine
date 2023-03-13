@@ -140,6 +140,25 @@ class Poly:
     def __str__(self):
         return "+".join(str(term) for term in self.terms) 
 
+    def __add__(self, other):
+        if type(other) == int:
+            other = Poly.constant(other)
+        assert type(other) == Poly
+        return Poly(self.terms + other.terms)
+
+    def __mul__(self, other):
+        return self.__rmul__(other)
+
+    def __rmul__(self, other):
+        if type(other) == int:
+            return Poly([term * other for term in self.terms])
+        else:
+            assert False
+
+    @staticmethod
+    def constant(c):
+        return Poly([Term.constant(c)])
+
     @staticmethod
     def var(label):
         return Poly([Term.var(label)])

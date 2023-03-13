@@ -55,3 +55,20 @@ assert str(p.reduce(x=8)) == "8+y"
 
 x = Poly.var("height")
 assert str(x) == "height"
+
+n = Poly.var("n")
+assert str(n+2) == "n+2"
+
+x = Poly.var("x")
+y = Poly.var("y")
+z = Poly.var("z")
+assert str(x+y+z) == "x+y+z"
+assert str(2*(x+y)) == "2*x+2*y"
+
+p = 3*x + y
+assert str(p.reduce(y=4)) == "3*x+4"
+
+
+
+
+
