@@ -1,5 +1,6 @@
 import collections
 
+
 class VarPower:
     def __init__(self, var, power):
         assert type(var) == str
@@ -11,18 +12,19 @@ class VarPower:
         self.power = power
 
     def eval(self, x):
-        return x ** self.power
+        return x**self.power
 
     def __str__(self):
         if self.power == 1:
             return self.var
         return f"({self.var}**{self.power})"
 
+
 class Term:
     def __init__(self, var_powers, coeff):
         assert type(var_powers) == list
         for var_power in var_powers:
-            assert(type(var_power)) == VarPower
+            assert (type(var_power)) == VarPower
         assert type(coeff) == int
         self.var_powers = var_powers
         self.vars = [vp.var for vp in var_powers]
@@ -81,7 +83,7 @@ class Term:
 
     def __pow__(self, other):
         assert type(other) == int
-        coeff = self.coeff ** other
+        coeff = self.coeff**other
         vps = [VarPower(vp.var, vp.power * other) for vp in self.var_powers]
         return Term(vps, coeff)
 
@@ -113,7 +115,7 @@ class Term:
 
     @staticmethod
     def constant(c):
-        return Term([], c) 
+        return Term([], c)
 
     @staticmethod
     def vp(c, var, power):
@@ -121,6 +123,7 @@ class Term:
         assert type(var) == str
         assert type(power) == int
         return Term([VarPower(var, power)], c)
+
 
 class Poly:
     def __init__(self, terms):
@@ -138,7 +141,7 @@ class Poly:
         return Poly([term.reduce(**vars) for term in self.terms])
 
     def __str__(self):
-        return "+".join(str(term) for term in self.terms) 
+        return "+".join(str(term) for term in self.terms)
 
     def __add__(self, other):
         if type(other) == int:
