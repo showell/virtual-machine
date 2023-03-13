@@ -1,5 +1,21 @@
 import collections
 
+"""
+The Poly class works purely with integer poynomials.
+
+It assumes the coefficients of the polynomials are integers,
+as well as the powers, and it assumes that you plug in integer
+values for the variables once you are ready to compute a value
+of the polynomial.
+
+It also assumes the powers of terms are non-negative.
+
+It supports an arbitrary combination of variables, and for
+convenience sake, it prevents you from having punctuation
+characters in variables that would conflict with operators
+like +, -, *, etc.
+"""
+
 
 class VarPower:
     def __init__(self, var, power):
@@ -11,13 +27,13 @@ class VarPower:
         self.var = var
         self.power = power
 
-    def eval(self, x):
-        return x**self.power
-
     def __str__(self):
         if self.power == 1:
             return self.var
         return f"({self.var}**{self.power})"
+
+    def eval(self, x):
+        return x**self.power
 
 
 class Term:
@@ -32,6 +48,41 @@ class Term:
         assert len(self.vars) == len(set(self.vars))
         self.coeff = coeff
 
+    def __add__(self, other):
+        assert type(other) == Term
+        assert len(self.var_powers) == len(other.var_powers)
+        assert self.sig() == other.sig()
+        return Term(self.var_powers, self.coeff + other.coeff)
+
+    def __mul__(self, other):
+        return self.__rmul__(other)
+
+    def __neg__(self):
+        return Term(self.var_powers, -1 * self.coeff)
+
+    def __pow__(self, other):
+        assert type(other) == int
+        coeff = self.coeff**other
+        vps = [VarPower(vp.var, vp.power * other) for vp in self.var_powers]
+        return Term(vps, coeff)
+
+    def __rmul__(self, other):
+        if type(other) == int:
+            return Term(self.var_powers, self.coeff * other)
+        elif type(other) == Term:
+            return self.multiply_terms(other)
+        else:
+            assert False
+
+    def __str__(self):
+        c = self.coeff
+        c_str = str(c) if c > 0 else f"({c})"
+        if not self.var_powers:
+            return c_str
+        if self.coeff == 1:
+            return self.sig()
+        return c_str + "*" + self.sig()
+
     def eval(self, **vars):
         """
         If we get passed in vars that we don't know about,
@@ -44,6 +95,18 @@ class Term:
         for vp in self.var_powers:
             product *= vp.eval(vars[vp.var])
         return product
+
+    def multiply_terms(self, other):
+        coeff = self.coeff * other.coeff
+        powers = collections.defaultdict(int)
+        for vp in self.var_powers:
+            powers[vp.var] = vp.power
+        for vp in other.var_powers:
+            powers[vp.var] += vp.power
+        parms = list(powers.items())
+        parms.sort()
+        vps = [VarPower(var, power) for var, power in parms]
+        return Term(vps, coeff)
 
     def reduce(self, **vars):
         """
@@ -61,55 +124,12 @@ class Term:
                 new_vps.append(vp)
         return Term(new_vps, new_coeff)
 
-    def __add__(self, other):
-        assert type(other) == Term
-        assert len(self.var_powers) == len(other.var_powers)
-        assert self.sig() == other.sig()
-        return Term(self.var_powers, self.coeff + other.coeff)
-
-    def __rmul__(self, other):
-        if type(other) == int:
-            return Term(self.var_powers, self.coeff * other)
-        elif type(other) == Term:
-            return self.multiply_terms(other)
-        else:
-            assert False
-
-    def __mul__(self, other):
-        return self.__rmul__(other)
-
-    def __neg__(self):
-        return Term(self.var_powers, -1 * self.coeff)
-
-    def __pow__(self, other):
-        assert type(other) == int
-        coeff = self.coeff**other
-        vps = [VarPower(vp.var, vp.power * other) for vp in self.var_powers]
-        return Term(vps, coeff)
-
-    def multiply_terms(self, other):
-        coeff = self.coeff * other.coeff
-        powers = collections.defaultdict(int)
-        for vp in self.var_powers:
-            powers[vp.var] = vp.power
-        for vp in other.var_powers:
-            powers[vp.var] += vp.power
-        parms = list(powers.items())
-        parms.sort()
-        vps = [VarPower(var, power) for var, power in parms]
-        return Term(vps, coeff)
-
     def sig(self):
         return "*".join(str(vp) for vp in self.var_powers)
 
-    def __str__(self):
-        c = self.coeff
-        c_str = str(c) if c > 0 else f"({c})"
-        if not self.var_powers:
-            return c_str
-        if self.coeff == 1:
-            return self.sig()
-        return c_str + "*" + self.sig()
+    @staticmethod
+    def constant(c):
+        return Term([], c)
 
     @staticmethod
     def sum(terms):
@@ -132,10 +152,6 @@ class Term:
         return Term([VarPower(var, 1)], 1)
 
     @staticmethod
-    def constant(c):
-        return Term([], c)
-
-    @staticmethod
     def vp(c, var, power):
         assert type(c) == int
         assert type(var) == str
@@ -153,6 +169,39 @@ class Poly:
         self.terms = terms
         self.simplify()
 
+    def __add__(self, other):
+        if type(other) == int:
+            other = Poly.constant(other)
+        assert type(other) == Poly
+        return Poly(self.terms + other.terms)
+
+    def __sub__(self, other):
+        return self + other * (-1)
+
+    def __mul__(self, other):
+        return self.__rmul__(other)
+
+    def __neg__(self):
+        return self * (-1)
+
+    def __rmul__(self, other):
+        if type(other) == int:
+            return Poly([term * other for term in self.terms])
+        elif type(other) == Term:
+            raise Exception("Use Poly contructors to build up terms.")
+        assert type(other) == Poly
+        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
+        return Poly(terms)
+
+    def __str__(self):
+        return "+".join(str(term) for term in self.terms)
+
+    def eval(self, **vars):
+        return sum(term.eval(**vars) for term in self.terms)
+
+    def reduce(self, **vars):
+        return Poly([term.reduce(**vars) for term in self.terms])
+
     def simplify(self):
         buckets = collections.defaultdict(list)
         for term in self.terms:
@@ -166,39 +215,6 @@ class Poly:
                 new_terms.append(term)
 
         self.terms = new_terms
-
-    def eval(self, **vars):
-        return sum(term.eval(**vars) for term in self.terms)
-
-    def reduce(self, **vars):
-        return Poly([term.reduce(**vars) for term in self.terms])
-
-    def __str__(self):
-        return "+".join(str(term) for term in self.terms)
-
-    def __add__(self, other):
-        if type(other) == int:
-            other = Poly.constant(other)
-        assert type(other) == Poly
-        return Poly(self.terms + other.terms)
-
-    def __sub__(self, other):
-        return self + other * (-1)
-
-    def __mul__(self, other):
-        return self.__rmul__(other)
-
-    def __rmul__(self, other):
-        if type(other) == int:
-            return Poly([term * other for term in self.terms])
-        elif type(other) == Term:
-            raise Exception("Use Poly contructors to build up terms.")
-        assert type(other) == Poly
-        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
-        return Poly(terms)
-
-    def __neg__(self):
-        return self * (-1)
 
     @staticmethod
     def constant(c):
