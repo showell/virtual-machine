@@ -155,3 +155,15 @@ assert str(zero) == "0"
 assert zero.eval() == 0
 assert str(0 - x) == "(-1)*x"
 assert str(zero - x) == "(-1)*x"
+
+p = (x**2 + 1).substitute("x", y + 1)
+assert str(p) == "(y**2)+2*y+2"
+
+p = (x**2 + 5).substitute("x", x + 1)
+assert str(p) == "(x**2)+2*x+6"
+
+p = (x**2 + 5 * x).substitute("x", x**2)
+assert str(p) == "(x**4)+5*(x**2)"
+
+p = (x**2 + 5 * z).substitute("x", y**2)
+assert str(p) == "(y**4)+5*z"

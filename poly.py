@@ -294,10 +294,15 @@ class Poly:
         return sum(term.eval(**vars) for term in self.terms)
 
     def put_terms_in_order(self):
+        if len(self.terms) <= 1:
+            return
         sorted_vars = sorted(self.variables())
         self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
 
     def simplify(self):
+        if len(self.terms) <= 1:
+            # don't worry if we are zero
+            return
         buckets = collections.defaultdict(list)
         for term in self.terms:
             sig = term.sig
@@ -311,8 +316,19 @@ class Poly:
 
         self.terms = new_terms
 
-    def substitute(self):
-        assert False  # TODO
+    def substitute(self, var, poly):
+        assert type(var) == str
+        assert type(poly) == Poly
+        assert var in self.variables()
+        new_polys = []
+        for term in self.terms:
+            smaller_term, power = term.factorize_on_var(var)
+            if power == 0:
+                new_poly = Poly([smaller_term])
+            else:
+                new_poly = Poly([smaller_term]) * (poly**power)
+            new_polys.append(new_poly)
+        return Poly.sum(new_polys)
 
     def variables(self):
         vars = set()
