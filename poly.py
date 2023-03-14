@@ -17,7 +17,7 @@ like +, -, *, etc.
 """
 
 
-class VarPower:
+class _VarPower:
     def __init__(self, var, power):
         assert type(var) == str
         for c in ",*+/-()":
@@ -31,7 +31,7 @@ class VarPower:
         assert exponent >= 1
         if exponent == 1:
             return self
-        return VarPower(self.var, self.power * exponent)
+        return _VarPower(self.var, self.power * exponent)
 
     def __str__(self):
         if self.power == 1:
@@ -42,11 +42,11 @@ class VarPower:
         return x**self.power
 
 
-class Term:
+class _Term:
     def __init__(self, coeff, var_powers):
         assert type(var_powers) == list
         for var_power in var_powers:
-            assert (type(var_power)) == VarPower
+            assert (type(var_power)) == _VarPower
         assert type(coeff) == int
         vars = [vp.var for vp in var_powers]
         assert vars == sorted(vars)
@@ -59,38 +59,38 @@ class Term:
         self.sig = sig
 
     def __add__(self, other):
-        assert type(other) == Term
+        assert type(other) == _Term
         assert len(self.var_powers) == len(other.var_powers)
         assert self.sig == other.sig
-        return Term(self.coeff + other.coeff, self.var_powers)
+        return _Term(self.coeff + other.coeff, self.var_powers)
 
     def __mul__(self, other):
         return self.__rmul__(other)
 
     def __neg__(self):
-        return Term(-1 * self.coeff, self.var_powers)
+        return _Term(-1 * self.coeff, self.var_powers)
 
     def __pow__(self, exponent):
         assert type(exponent) == int
         assert exponent >= 0
         if exponent == 0:
-            return Term.one()
+            return _Term.one()
 
         if exponent == 1:
             return self
 
         coeff = self.coeff**exponent
         vps = [vp**exponent for vp in self.var_powers]
-        return Term(coeff, vps)
+        return _Term(coeff, vps)
 
     def __rmul__(self, other):
         if type(other) == int:
             if other == 0:
-                return Term.zero()
+                return _Term.zero()
             if other == 1:
                 assert self
-            return Term(self.coeff * other, self.var_powers)
-        elif type(other) == Term:
+            return _Term(self.coeff * other, self.var_powers)
+        elif type(other) == _Term:
             return self.multiply_terms(other)
         else:
             assert False
@@ -103,6 +103,13 @@ class Term:
         if self.coeff == 1:
             return self.sig
         return c_str + "*" + self.sig
+
+    def __sub__(self, other):
+        """
+        You should never try to substract terms.  Let the Poly
+        class handle substraction.
+        """
+        raise NotImplementedError
 
     def apply(self, **vars):
         """
@@ -120,7 +127,7 @@ class Term:
                 new_coeff *= vp.eval(vars[vp.var])
             else:
                 new_vps.append(vp)
-        return Term(new_coeff, new_vps)
+        return _Term(new_coeff, new_vps)
 
     def eval(self, **vars):
         """
@@ -141,7 +148,7 @@ class Term:
         var_powers = [vp for vp in self.var_powers if vp.var != excluded_var]
         coeff = self.coeff
         power_of_excluded_var = self.var_dict[excluded_var]
-        return (Term(coeff, var_powers), power_of_excluded_var)
+        return (_Term(coeff, var_powers), power_of_excluded_var)
 
     def is_one(self):
         return self.coeff == 1 and len(self.var_powers) == 0
@@ -151,7 +158,7 @@ class Term:
 
     def multiply_terms(self, other):
         if other.coeff == 0:
-            return Term.zero()
+            return _Term.zero()
         elif other.is_one():
             return self
 
@@ -163,19 +170,19 @@ class Term:
             powers[vp.var] += vp.power
         parms = list(powers.items())
         parms.sort()
-        vps = [VarPower(var, power) for var, power in parms]
-        return Term(coeff, vps)
+        vps = [_VarPower(var, power) for var, power in parms]
+        return _Term(coeff, vps)
 
     def variables(self):
         return set(self.var_dict.keys())
 
     @staticmethod
     def constant(c):
-        return Term(c, [])
+        return _Term(c, [])
 
     @staticmethod
     def one():
-        return Term(1, [])
+        return _Term(1, [])
 
     @staticmethod
     def sum(terms):
@@ -189,30 +196,30 @@ class Term:
         coeff = term.coeff
         var_powers = term.var_powers
         for other in terms[1:]:
-            assert type(other) == Term
+            assert type(other) == _Term
             assert other.sig == sig
             coeff += other.coeff
 
-        return Term(coeff, var_powers)
+        return _Term(coeff, var_powers)
 
     @staticmethod
     def var(var):
-        return Term(1, [VarPower(var, 1)])
+        return _Term(1, [_VarPower(var, 1)])
 
     @staticmethod
     def zero():
-        return Term(0, [])
+        return _Term(0, [])
 
 
 class Poly:
     def __init__(self, terms):
-        if type(terms) == Term:
+        if type(terms) == _Term:
             raise ValueError(
-                "Pass in a list of Terms or use Poly's other constructors."
+                "Pass in a list of _Terms or use Poly's other constructors."
             )
         assert type(terms) == list
         for term in terms:
-            assert type(term) == Term
+            assert type(term) == _Term
         self.terms = terms
         self.simplify()
         self.put_terms_in_order()
@@ -246,7 +253,7 @@ class Poly:
     def __rmul__(self, other):
         if type(other) == int:
             return Poly([term * other for term in self.terms])
-        elif type(other) == Term:
+        elif type(other) == _Term:
             raise ValueError("Use Poly contructors to build up terms.")
         assert type(other) == Poly
         terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
@@ -318,7 +325,7 @@ class Poly:
 
         new_terms = []
         for sub_terms in buckets.values():
-            term = Term.sum(sub_terms)
+            term = _Term.sum(sub_terms)
             if term.coeff != 0:
                 new_terms.append(term)
 
@@ -346,7 +353,7 @@ class Poly:
 
     @staticmethod
     def constant(c):
-        return Poly([Term.constant(c)])
+        return Poly([_Term.constant(c)])
 
     @staticmethod
     def one():
@@ -373,7 +380,7 @@ class Poly:
 
     @staticmethod
     def var(label):
-        return Poly([Term.var(label)])
+        return Poly([_Term.var(label)])
 
     @staticmethod
     def zero():

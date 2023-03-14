@@ -1,22 +1,22 @@
-from poly import VarPower, Term, Poly
+from poly import _VarPower, _Term, Poly
 
-vpn = VarPower("n", 5)
+vpn = _VarPower("n", 5)
 assert str(vpn) == "(n**5)"
 assert vpn.eval(2) == 32
 
-vpx = VarPower("x", 3)
+vpx = _VarPower("x", 3)
 assert str(vpx) == "(x**3)"
 assert vpx.eval(2) == 8
 
 assert str(vpx**1) == "(x**3)"
 assert str(vpx**4) == "(x**12)"
 
-## Term tests
+## _Term tests
 
-x = Term.var("x")
-y = Term.var("y")
-zero = Term.zero()
-one = Term.one()
+x = _Term.var("x")
+y = _Term.var("y")
+zero = _Term.zero()
+one = _Term.one()
 
 assert (x * zero).eval() == 0
 assert (zero * zero).eval() == 0
@@ -30,13 +30,13 @@ assert not x.is_one()
 assert (x * 0).eval() == 0
 assert (x * 1).eval(x=7) == 7
 
-term = Term(3, [vpn, vpx])
+term = _Term(3, [vpn, vpx])
 assert str(term) == "3*(n**5)*(x**3)"
 assert str(term**0) == "1"
 assert str(term**1) == "3*(n**5)*(x**3)"
 assert term.eval(n=2, x=4) == 3 * (2**5) * (4**3)
 
-term = Term.constant(17)
+term = _Term.constant(17)
 assert term.eval() == 17
 
 term = 5 * x**2
