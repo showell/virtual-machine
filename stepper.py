@@ -48,28 +48,33 @@ def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
     pass2 = AND(is_2, runs_pass)
     pass1 = AND(is_1, runs_pass)
     pass0 = AND(is_0, runs_pass)
+    pass_accepts = FALSE
 
     check3 = AND(is_3, runs_check)
     check2 = AND(is_2, runs_check)
     check1 = AND(is_1, runs_check)
     check0 = AND(is_0, runs_check)
+    check_accepts = AND(is_0, runs_check)
 
     decr3 = FALSE
     decr2 = AND(is_3, runs_decr)
     decr1 = AND(is_2, runs_decr)
     decr0 = AND(OR(is_1, is_0), runs_decr)
+    decr_accepts = FALSE
 
     mod3 = FALSE
     mod2 = FALSE
     mod1 = AND(OR(is_3, is_1), runs_mod2)
     mod0 = AND(OR(is_2, is_0), runs_mod2)
+    mod_accepts = FALSE
 
     becomes_3 = OR4(pass3, check3, decr3, mod3)
     becomes_2 = OR4(pass2, check2, decr2, mod2)
     becomes_1 = OR4(pass1, check1, decr1, mod1)
     becomes_0 = OR4(pass0, check0, decr0, mod0)
 
-    accepted = OR(accepted, AND(is_0, runs_check))
+    newly_accepted = OR4(pass_accepts, check_accepts, decr_accepts, mod_accepts)
+    accepted = OR(accepted, newly_accepted)
 
     halted = OR3(halted, accepted, AND(is_0, runs_decr))
 
