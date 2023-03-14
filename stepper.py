@@ -1,38 +1,21 @@
-class Expr:
-    def __init__(self, *, val, label):
-        self.val = val
-        self.label = label
+from poly import Poly
 
-def VAR(x, label):
-    return Expr(val=x, label=label)
-
-def ADD(x, y):
-    return Expr(val=x.val + y.val, label=f"{x.label}+{y.label}")
-
-def SUB(x, y):
-    return Expr(val=x.val - y.val, label=f"{x.label}-({y.label})")
-
-def MULT(x, y):
-    return Expr(val=x.val * y.val, label=f"({x.label})*({y.label})")
-
-def DECR(x):
-    return Expr(val=x.val - 1, label=f"({x.label} - 1)")
-
-ONE = Expr(val=1, label="1")
+def VAR(label):
+    return Poly.var(label)
 
 def NOT(x):
-    return SUB(ONE, x)
+    return 1 - x
 
 def AND(x, y):
-    return MULT(x, y)
+    return x * y
 
 def OR(x, y):
-    return SUB(ADD(x,y), MULT(x,y))
+    return (x + y) - (x * y)
 
 def OR3(x, y, z):
     return OR(OR(x, y), z)
 
-def evaluate(*, hb, lb, halted, accepted, op_hb, op_lb):
+def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
     is_3 = AND(hb, lb)
     is_2 = AND(hb, NOT(lb))
     is_1 = AND(NOT(hb), lb)
@@ -64,9 +47,19 @@ def evaluate(*, hb, lb, halted, accepted, op_hb, op_lb):
 
     return (hb_set, lb_set, halted, accepted)
 
+STEP_POLYNOMIALS = construct_polynomials(
+    hb=VAR("hb"),
+    lb=VAR("lb"),
+    halted=VAR("halted"),
+    accepted=VAR("accepted"),
+    op_hb=VAR("op_hb"),
+    op_lb=VAR("op_lb"),
+)
+
 def step(*, AX, halted, accepted, op):
     assert AX in [0, 1, 2, 3]
     assert halted in [0, 1]
+    assert accepted in [0, 1]
     assert op in [0, 1, 2, 3]
 
     hb = AX // 2
@@ -75,14 +68,12 @@ def step(*, AX, halted, accepted, op):
     op_hb = op // 2
     op_lb = op % 2
 
-    hb = VAR(hb, "hb")
-    lb = VAR(lb, "lb")
-    halted = VAR(halted, "halted")
-    accepted = VAR(accepted, "accepted")
-    op_hb = VAR(op_hb, "ophb1")
-    op_lb = VAR(op_lb, "ophb2") 
+    halted = int(halted)
+    accepted = int(accepted)
 
-    (hb_set, lb_set, halted, accepted) = evaluate(
+    (hb_set, lb_set, new_halted, new_accepted) = STEP_POLYNOMIALS
+
+    hb_set = hb_set.eval(
         hb=hb,
         lb=lb,
         halted=halted,
@@ -90,7 +81,30 @@ def step(*, AX, halted, accepted, op):
         op_hb=op_hb,
         op_lb=op_lb,
     )
-    # print(lb_set.label)
+    lb_set = lb_set.eval(
+        hb=hb,
+        lb=lb,
+        halted=halted,
+        accepted=accepted,
+        op_hb=op_hb,
+        op_lb=op_lb,
+    )
+    new_halted = new_halted.eval(
+        hb=hb,
+        lb=lb,
+        halted=halted,
+        accepted=accepted,
+        op_hb=op_hb,
+        op_lb=op_lb,
+    )
+    new_accepted = new_accepted.eval(
+        hb=hb,
+        lb=lb,
+        halted=halted,
+        accepted=accepted,
+        op_hb=op_hb,
+        op_lb=op_lb,
+    )
 
-    AX = 2 * hb_set.val + lb_set.val
-    return (AX, halted.val, accepted.val)
+    AX = 2 * hb_set + lb_set
+    return (AX, new_halted, new_accepted)

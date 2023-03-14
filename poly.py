@@ -215,16 +215,23 @@ class Poly:
         terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
         return Poly(terms)
 
+    def __rsub__(self, other):
+        if type(other) == int:
+            other = Poly.constant(other)
+        assert type(other) == Poly
+        return -self + other
+
     def __str__(self):
         return "+".join(str(term) for term in self.terms)
 
     def eval(self, **vars):
         my_vars = self.variables()
-        assert set(vars).issubset(my_vars)
         if len(set(vars)) < len(my_vars):
             raise Exception("Not enough variables supplied. Maybe use apply?")
 
-        for value in vars.values():
+        for var, value in vars.items():
+            if type(value) not in (int, float):
+                raise ValueError(f"The value {value} for var {var} is neither int nor float.")
             assert type(value) in (int, float)
         return sum(term.eval(**vars) for term in self.terms)
 
