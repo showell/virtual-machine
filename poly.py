@@ -111,7 +111,7 @@ class Term:
         vps = [VarPower(var, power) for var, power in parms]
         return Term(vps, coeff)
 
-    def reduce(self, **vars):
+    def apply(self, **vars):
         """
         If we get passed in vars that we don't know about,
         just ignore them.
@@ -218,13 +218,19 @@ class Poly:
         my_vars = self.variables()
         assert set(vars).issubset(my_vars)
         if len(set(vars)) < len(my_vars):
-            raise Exception("Not enough variables supplied. Maybe use reduce?")
+            raise Exception("Not enough variables supplied. Maybe use apply?")
 
         for value in vars.values():
             assert type(value) in (int, float)
         return sum(term.eval(**vars) for term in self.terms)
 
-    def reduce(self, **vars):
+    def apply(self, **vars):
+        """
+        This does a partial application of a subset of variables to
+        our polynomial. I perhaps could have called this "partial",
+        but I wanted to avoid confusion with possible future extensions
+        related to partial derivates.
+        """
         int_vars = {}
         poly = self
         for var, value in vars.items():
@@ -234,14 +240,14 @@ class Poly:
                 assert False  # TODO
             else:
                 raise ValueError("Improper type supplied")
-        return poly.reduce_int_vars(**int_vars)
+        return poly.apply_int_vars(**int_vars)
 
-    def reduce_int_vars(self, **vars):
+    def apply_int_vars(self, **vars):
         my_vars = self.variables()
         assert set(vars).issubset(my_vars)
         for value in vars.values():
             assert type(value) == int
-        return Poly([term.reduce(**vars) for term in self.terms])
+        return Poly([term.apply(**vars) for term in self.terms])
 
     def simplify(self):
         buckets = collections.defaultdict(list)
