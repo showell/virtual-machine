@@ -141,10 +141,18 @@ class Term:
         power_of_excluded_var = self.var_dict.get(excluded_var, 0)
         return (Term(coeff, var_powers), power_of_excluded_var)
 
+    def is_one(self):
+        return self.coeff == 1 and len(self.var_powers) == 0
+
     def key(self, var_list):
         return tuple(self.var_dict.get(var, 0) for var in var_list)
 
     def multiply_terms(self, other):
+        if other.coeff == 0:
+            return Term.zero()
+        elif other.is_one():
+            return self
+
         coeff = self.coeff * other.coeff
         powers = collections.defaultdict(int)
         for vp in self.var_powers:

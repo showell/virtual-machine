@@ -15,6 +15,17 @@ assert str(vpx**4) == "(x**12)"
 
 x = Term.var("x")
 y = Term.var("y")
+zero = Term.zero()
+one = Term.one()
+
+assert (x * zero).eval() == 0
+assert (zero * zero).eval() == 0
+assert (one * one).eval() == 1
+assert str(one * x) == "x"
+assert str(x * one) == "x"
+assert not zero.is_one()
+assert one.is_one()
+assert not x.is_one()
 
 assert (x * 0).eval() == 0
 assert (x * 1).eval(x=7) == 7
