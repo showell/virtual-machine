@@ -27,6 +27,9 @@ class VarPower:
         self.var = var
         self.power = power
 
+    def __pow__(self, exponent):
+        return VarPower(self.var, self.power * exponent)
+
     def __str__(self):
         if self.power == 1:
             return self.var
@@ -60,10 +63,10 @@ class Term:
     def __neg__(self):
         return Term(self.var_powers, -1 * self.coeff)
 
-    def __pow__(self, other):
-        assert type(other) == int
-        coeff = self.coeff**other
-        vps = [VarPower(vp.var, vp.power * other) for vp in self.var_powers]
+    def __pow__(self, exponent):
+        assert type(exponent) == int
+        coeff = self.coeff**exponent
+        vps = [vp**exponent for vp in self.var_powers]
         return Term(vps, coeff)
 
     def __rmul__(self, other):
@@ -184,14 +187,14 @@ class Poly:
     def __neg__(self):
         return self * (-1)
 
-    def __pow__(self, n):
-        assert n >= 0
-        assert type(n) == int
-        if n == 0:
+    def __pow__(self, exponent):
+        assert exponent >= 0
+        assert type(exponent) == int
+        if exponent == 0:
             return Poly.constant(1)
-        if n == 1:
+        if exponent == 1:
             return self
-        return self * self ** (n - 1)
+        return self * self ** (exponent - 1)
 
     def __radd__(self, other):
         if type(other) == int:
