@@ -119,6 +119,12 @@ class Term:
             product *= vp.eval(vars[vp.var])
         return product
 
+    def factorize_on_var(self, excluded_var):
+        var_powers = [vp for vp in self.var_powers if vp.var != excluded_var]
+        coeff = self.coeff
+        power_of_excluded_var = self.var_dict.get(excluded_var, 0)
+        return (Term(var_powers, coeff), power_of_excluded_var)
+
     def key(self, var_list):
         return tuple(self.var_dict.get(var, 0) for var in var_list)
 
@@ -256,7 +262,9 @@ class Poly:
 
         for var, value in vars.items():
             if type(value) not in (int, float):
-                raise ValueError(f"The value {value} for var {var} is neither int nor float.")
+                raise ValueError(
+                    f"The value {value} for var {var} is neither int nor float."
+                )
             assert type(value) in (int, float)
         return sum(term.eval(**vars) for term in self.terms)
 

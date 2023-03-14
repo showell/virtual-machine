@@ -8,6 +8,14 @@ vpx = VarPower("x", 3)
 assert str(vpx) == "(x**3)"
 assert vpx.eval(2) == 8
 
+assert str(vpx**4) == "(x**12)"
+
+
+## Term tests
+
+x = Term.var("x")
+y = Term.var("y")
+
 term = Term([vpn, vpx], 3)
 assert str(term) == "3*(n**5)*(x**3)"
 assert term.eval(n=2, x=4) == 3 * (2**5) * (4**3)
@@ -29,40 +37,49 @@ term = Term.vp(3, "x", 4) ** 3
 assert str(term) == "27*(x**12)"
 assert str(-term) == "(-27)*(x**12)"
 
-x = Term.var("x")
 assert str(x**2 + 5 * x**2) == "6*(x**2)"
 
-t = Term.var("y") * Term.var("x") ** 2
+t = y * x**2
 assert str(t) == "(x**2)*y"
 assert t.variables() == {"x", "y"}
 
-x = Term.var("x")
-y = Term.var("y")
 t = 3 * (x**99) * (y**3)
 t = t.apply(y=2)
 assert str(t) == "24*(x**99)"
 t = t.apply(x=1)
 assert str(t) == "24"
 
+p = 5 * (x**2) * (y**3)
+term, power = p.factorize_on_var("x")
+assert str(term) == "5*(y**3)"
+assert power == 2
+
+term, power = p.factorize_on_var("y")
+assert str(term) == "5*(x**2)"
+assert power == 3
+
+term, power = p.factorize_on_var("z")
+assert str(term) == str(p)
+assert power == 0
+
 # POLY TESTS
 
-
-x = Term.var("x")
-y = Term.var("y")
-p = Poly([x, y])
-assert str(p) == "x+y"
-assert p.eval(x=5, y=2) == 7
-assert str(p.apply(x=8)) == "y+8"
-
-h = Poly.var("height")
-assert str(h) == "height"
-
-n = Poly.var("n")
-assert str(n + 2) == "n+2"
 
 x = Poly.var("x")
 y = Poly.var("y")
 z = Poly.var("z")
+h = Poly.var("height")
+n = Poly.var("n")
+
+p = x + y
+assert str(p) == "x+y"
+assert p.eval(x=5, y=2) == 7
+assert str(p.apply(x=8)) == "y+8"
+
+assert str(h) == "height"
+
+assert str(n + 2) == "n+2"
+
 assert str(x + y + z) == "x+y+z"
 
 assert str(2 * (x + y)) == "2*x+2*y"
