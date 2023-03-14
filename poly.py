@@ -45,13 +45,17 @@ class Term:
         for var_power in var_powers:
             assert (type(var_power)) == VarPower
         assert type(coeff) == int
-        self.var_powers = var_powers
         vars = [vp.var for vp in var_powers]
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
+
+        sig = "*".join(str(vp) for vp in var_powers)
+        self.var_powers = var_powers
         self.coeff = coeff
-        self.var_set = {vp.var for vp in self.var_powers}
-        self.sig = "*".join(str(vp) for vp in self.var_powers)
+        self.var_set = {vp.var for vp in var_powers}
+        self.power = sum(vp.power for vp in var_powers)
+        self.key = (-self.power, sig)
+        self.sig = sig
 
     def __add__(self, other):
         assert type(other) == Term
