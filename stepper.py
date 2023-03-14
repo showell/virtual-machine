@@ -44,44 +44,44 @@ def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
     runs_decr = AND(is_decr, NOT(halted))
     runs_mod2 = AND(is_mod2, NOT(halted))
 
-    pass3 = AND(is_3, runs_pass)
-    pass2 = AND(is_2, runs_pass)
-    pass1 = AND(is_1, runs_pass)
     pass0 = AND(is_0, runs_pass)
+    pass1 = AND(is_1, runs_pass)
+    pass2 = AND(is_2, runs_pass)
+    pass3 = AND(is_3, runs_pass)
     pass_accepts = FALSE
     pass_halts = FALSE
 
-    check3 = AND(is_3, runs_check)
-    check2 = AND(is_2, runs_check)
-    check1 = AND(is_1, runs_check)
     check0 = AND(is_0, runs_check)
+    check1 = AND(is_1, runs_check)
+    check2 = AND(is_2, runs_check)
+    check3 = AND(is_3, runs_check)
     check_accepts = AND(is_0, runs_check)
     check_halts = FALSE
 
-    decr3 = FALSE
-    decr2 = AND(is_3, runs_decr)
-    decr1 = AND(is_2, runs_decr)
     decr0 = AND(OR(is_1, is_0), runs_decr)
+    decr1 = AND(is_2, runs_decr)
+    decr2 = AND(is_3, runs_decr)
+    decr3 = FALSE
     decr_accepts = FALSE
     decr_halts = AND(is_0, runs_decr)
 
-    mod3 = FALSE
-    mod2 = FALSE
-    mod1 = AND(OR(is_3, is_1), runs_mod2)
     mod0 = AND(OR(is_2, is_0), runs_mod2)
+    mod1 = AND(OR(is_3, is_1), runs_mod2)
+    mod2 = FALSE
+    mod3 = FALSE
     mod_accepts = FALSE
     mod_halts = FALSE
-
-    becomes_3 = OR4(pass3, check3, decr3, mod3)
-    becomes_2 = OR4(pass2, check2, decr2, mod2)
-    becomes_1 = OR4(pass1, check1, decr1, mod1)
-    becomes_0 = OR4(pass0, check0, decr0, mod0)
 
     newly_accepted = OR4(pass_accepts, check_accepts, decr_accepts, mod_accepts)
     accepted = OR(accepted, newly_accepted)
 
     newly_halted = OR4(pass_halts, check_halts, decr_halts, mod_halts)
     halted = OR(halted, newly_halted)
+
+    becomes_0 = OR4(pass0, check0, decr0, mod0)
+    becomes_1 = OR4(pass1, check1, decr1, mod1)
+    becomes_2 = OR4(pass2, check2, decr2, mod2)
+    becomes_3 = OR4(pass3, check3, decr3, mod3)
 
     hb_set = OR(becomes_3, becomes_2)
     lb_set = OR(becomes_3, becomes_1)
