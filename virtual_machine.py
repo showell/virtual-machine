@@ -9,28 +9,28 @@ Operation of a finite virtual machine:
 
     Every program is a sequence of these opcodes (aka instructions):
 
-        0 (pass):
+        00 (pass):
             (do nothing)
 
-        1 (check):
+        01 (check):
             AX = 3 -> ignore and continue
             AX = 2 -> ignore and continue
             AX = 1 -> ignore and continue
             AX = 0 -> halt and accept input
 
-        2 (decr):
+        10 (decr):
             AX = 3 -> AX = 2 and continue
             AX = 2 -> AX = 1 and continue
             AX = 1 -> AX = 0 and continue
             AX = 0 -> halt and reject input
 
-        3 (mod2):
+        11 (mod2):
             AX = 3 -> AX = 1
             AX = 2 -> AX = 0
             AX = 1 -> AX = 1
             AX = 0 -> AX = 0
 
-    Every program must include exactly MAX_STEPS instructions.  If at the end
+    Every program must include exactly six instructions.  If at the end
     of that program you have not accepted the input, then the input is
     implicitly rejected.
 
@@ -62,7 +62,7 @@ Operation of a finite virtual machine:
 
 import stepper
 
-MAX_STEPS = 8
+MAX_STEPS = 6
 
 
 def run_progam(n, program):
@@ -128,7 +128,7 @@ def disassemble(n):
 
 
 assert assemble(["check", "decr"]) == 9
-assert disassemble(9) == ["check", "decr"] + ["pass"] * 6
+assert disassemble(9) == ["check", "decr"] + ["pass"] * (MAX_STEPS - 2)
 
 
 def encoded_language(lang):
@@ -167,6 +167,9 @@ def find_solutions():
         solutions[y] = []
     for x in range(4**MAX_STEPS):
         solutions[f(x)].append(x)
+
+    for y in range(16):
+        assert len(solutions[y]) > 0
 
     for y in range(16):
         lang = language(y)
