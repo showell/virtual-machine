@@ -3,9 +3,6 @@ class Expr:
         self.val = val
         self.label = label
 
-def VAL(x):
-    return Expr(val=x, label=x)
-
 def VAR(x, label):
     return Expr(val=x, label=label)
 
@@ -78,9 +75,8 @@ def step(*, AX, halted, accepted, op):
     op_hb = op // 2
     op_lb = op % 2
 
-    hb = VAL(hb)
-    lb = VAL(lb)
-
+    hb = VAR(hb, "hb")
+    lb = VAR(lb, "lb")
     halted = VAR(halted, "halted")
     accepted = VAR(accepted, "accepted")
     op_hb = VAR(op_hb, "ophb1")
