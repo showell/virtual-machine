@@ -167,3 +167,6 @@ assert str(p) == "(x**4)+5*(x**2)"
 
 p = (x**2 + 5 * z).substitute("x", y**2)
 assert str(p) == "(y**4)+5*z"
+
+p = (x**2 + 5 * z).substitute("x", 100 * y**2 + 3)
+assert str(p) == "10000*(y**4)+600*(y**2)+5*z+9"
