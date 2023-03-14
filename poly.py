@@ -52,9 +52,7 @@ class Term:
         sig = "*".join(str(vp) for vp in var_powers)
         self.var_powers = var_powers
         self.coeff = coeff
-        self.var_set = {vp.var for vp in var_powers}
-        self.power = sum(vp.power for vp in var_powers)
-        self.key = (-self.power, sig)
+        self.var_dict = {vp.var: vp.power for vp in var_powers}
         self.sig = sig
 
     def __add__(self, other):
@@ -105,6 +103,9 @@ class Term:
             product *= vp.eval(vars[vp.var])
         return product
 
+    def key(self, var_list):
+        return tuple(self.var_dict.get(var, 0) for var in var_list)
+
     def multiply_terms(self, other):
         coeff = self.coeff * other.coeff
         powers = collections.defaultdict(int)
@@ -134,7 +135,7 @@ class Term:
         return Term(new_vps, new_coeff)
 
     def variables(self):
-        return self.var_set
+        return set(self.var_dict.keys())
 
     @staticmethod
     def constant(c):
@@ -265,6 +266,8 @@ class Poly:
                 new_terms.append(term)
 
         self.terms = new_terms
+        sorted_vars = sorted(self.variables())
+        self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
 
     def variables(self):
         vars = set()
