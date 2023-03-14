@@ -21,30 +21,53 @@ def OR3(x, y, z):
     return OR(OR(x, y), z)
 
 
+def OR4(w, x, y, z):
+    return OR(OR(w, x), OR(y, z))
+
+
+FALSE = Poly.constant(0)
+
+
 def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
     is_3 = AND(hb, lb)
     is_2 = AND(hb, NOT(lb))
     is_1 = AND(NOT(hb), lb)
     is_0 = AND(NOT(hb), NOT(lb))
 
+    is_pass = AND(NOT(op_hb), NOT(op_lb))
     is_check = AND(NOT(op_hb), op_lb)
     is_decr = AND(op_hb, NOT(op_lb))
     is_mod2 = AND(op_hb, op_lb)
 
-    stays_same = OR(halted, is_check)
+    runs_pass = OR(is_pass, halted)
     runs_check = AND(is_check, NOT(halted))
     runs_decr = AND(is_decr, NOT(halted))
     runs_mod2 = AND(is_mod2, NOT(halted))
 
-    is_even = OR(is_0, is_2)
-    is_odd = OR(is_1, is_3)
+    pass3 = AND(is_3, runs_pass)
+    pass2 = AND(is_2, runs_pass)
+    pass1 = AND(is_1, runs_pass)
+    pass0 = AND(is_0, runs_pass)
 
-    becomes_3 = AND(is_3, stays_same)
-    becomes_2 = OR(AND(is_2, stays_same), AND(is_3, runs_decr))
-    becomes_1 = OR3(AND(is_1, stays_same), AND(is_2, runs_decr), AND(is_odd, runs_mod2))
-    becomes_0 = OR3(
-        AND(is_0, stays_same), AND(is_1, runs_decr), AND(is_even, runs_mod2)
-    )
+    check3 = AND(is_3, runs_check)
+    check2 = AND(is_2, runs_check)
+    check1 = AND(is_1, runs_check)
+    check0 = AND(is_0, runs_check)
+
+    decr3 = FALSE
+    decr2 = AND(is_3, runs_decr)
+    decr1 = AND(is_2, runs_decr)
+    decr0 = AND(OR(is_1, is_0), runs_decr)
+
+    mod3 = FALSE
+    mod2 = FALSE
+    mod1 = AND(OR(is_3, is_1), runs_mod2)
+    mod0 = AND(OR(is_2, is_0), runs_mod2)
+
+    becomes_3 = OR4(pass3, check3, decr3, mod3)
+    becomes_2 = OR4(pass2, check2, decr2, mod2)
+    becomes_1 = OR4(pass1, check1, decr1, mod1)
+    becomes_0 = OR4(pass0, check0, decr0, mod0)
 
     accepted = OR(accepted, AND(is_0, runs_check))
 

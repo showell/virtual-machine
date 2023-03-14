@@ -190,39 +190,3 @@ def find_solutions():
 
 
 find_solutions()
-
-
-def find_solutions_analytically():
-    """
-    This only finds one solution to a language like [0, 1, 3].
-    """
-
-    def solve(lang):
-        if not lang:
-            # The program can terminate to reject all further numbers
-            return []
-
-        program = []
-        while lang[0] > 0:
-            program.append("decr")
-            lang = [i - 1 for i in lang]
-
-        return program + ["check"] + solve(lang[1:])
-
-    def pad_with_passes(program):
-        return program + ["pass"] * (MAX_STEPS - len(program))
-
-    for y in range(16):
-        lang = language(y)
-        program = solve(lang)
-        assert len(program) < MAX_STEPS
-        program = pad_with_passes(program)
-        x = assemble(program)
-        assert f(x) == y
-        print(program, "solves", lang)
-        for i in range(4):
-            accepted = test_with_stepper(program, i)
-            assert accepted == (i in lang)
-
-
-# find_solutions_analytically()
