@@ -300,11 +300,15 @@ class Poly:
         self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
 
     def simplify(self):
-        if len(self.terms) <= 1:
-            # don't worry if we are zero
+        terms = self.terms
+        if len(terms) == 0:
+            return
+        if len(terms) == 1:
+            if terms[0].coeff == 0:
+                self.terms = []
             return
         buckets = collections.defaultdict(list)
-        for term in self.terms:
+        for term in terms:
             sig = term.sig
             buckets[sig].append(term)
 
