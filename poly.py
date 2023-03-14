@@ -222,8 +222,22 @@ class Poly:
         return sum(term.eval(**vars) for term in self.terms)
 
     def reduce(self, **vars):
+        int_vars = {}
+        poly = self
+        for var, value in vars.items():
+            if type(value) == int:
+                int_vars[var] = value
+            elif type(value) is Poly:
+                assert False  # TODO
+            else:
+                raise ValueError("Improper type supplied")
+        return poly.reduce_int_vars(**int_vars)
+
+    def reduce_int_vars(self, **vars):
         my_vars = self.variables()
         assert set(vars).issubset(my_vars)
+        for value in vars.values():
+            assert type(value) == int
         return Poly([term.reduce(**vars) for term in self.terms])
 
     def simplify(self):
