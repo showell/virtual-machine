@@ -286,25 +286,6 @@ class Poly:
         sorted_vars = sorted(self.variables())
         self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
 
-    @staticmethod
-    def sum(poly_list):
-        """
-        You can use ordinary Python sum() on a list of polynomials,
-        but this should be faster, since it avoids creating a bunch
-        of intermediate partial polynomial sums for large lists.
-        """
-        for poly in poly_list:
-            assert type(poly) == Poly
-
-        if len(poly_list) == 0:
-            return Poly.constant(0)
-
-        if len(poly_list) == 1:
-            return poly_list[0]
-
-        terms = sum((p.terms for p in poly_list), start=[])
-        return Poly(terms)
-
     def variables(self):
         vars = set()
         for term in self.terms:
@@ -316,5 +297,28 @@ class Poly:
         return Poly([Term.constant(c)])
 
     @staticmethod
+    def sum(poly_list):
+        """
+        You can use ordinary Python sum() on a list of polynomials,
+        but this should be faster, since it avoids creating a bunch
+        of intermediate partial polynomial sums for large lists.
+        """
+        for poly in poly_list:
+            assert type(poly) == Poly
+
+        if len(poly_list) == 0:
+            return Poly.zero()
+
+        if len(poly_list) == 1:
+            return poly_list[0]
+
+        terms = sum((p.terms for p in poly_list), start=[])
+        return Poly(terms)
+
+    @staticmethod
     def var(label):
         return Poly([Term.var(label)])
+
+    @staticmethod
+    def zero():
+        return Poly([])

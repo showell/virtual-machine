@@ -70,6 +70,7 @@ y = Poly.var("y")
 z = Poly.var("z")
 h = Poly.var("height")
 n = Poly.var("n")
+zero = Poly.zero()
 
 p = x + y
 assert str(p) == "x+y"
@@ -129,3 +130,6 @@ assert str(sum([y, x, z**2])) == "x+y+(z**2)"
 assert str(Poly.sum([])) == "0"
 assert str(Poly.sum([x])) == "x"
 assert str(Poly.sum([y, x, z**2])) == "x+y+(z**2)"
+
+assert str(zero) == "0"
+assert zero.eval() == 0
