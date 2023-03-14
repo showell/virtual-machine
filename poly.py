@@ -40,7 +40,7 @@ class VarPower:
 
 
 class Term:
-    def __init__(self, var_powers, coeff):
+    def __init__(self, coeff, var_powers):
         assert type(var_powers) == list
         for var_power in var_powers:
             assert (type(var_power)) == VarPower
@@ -59,23 +59,23 @@ class Term:
         assert type(other) == Term
         assert len(self.var_powers) == len(other.var_powers)
         assert self.sig == other.sig
-        return Term(self.var_powers, self.coeff + other.coeff)
+        return Term(self.coeff + other.coeff, self.var_powers)
 
     def __mul__(self, other):
         return self.__rmul__(other)
 
     def __neg__(self):
-        return Term(self.var_powers, -1 * self.coeff)
+        return Term(-1 * self.coeff, self.var_powers)
 
     def __pow__(self, exponent):
         assert type(exponent) == int
         coeff = self.coeff**exponent
         vps = [vp**exponent for vp in self.var_powers]
-        return Term(vps, coeff)
+        return Term(coeff, vps)
 
     def __rmul__(self, other):
         if type(other) == int:
-            return Term(self.var_powers, self.coeff * other)
+            return Term(self.coeff * other, self.var_powers)
         elif type(other) == Term:
             return self.multiply_terms(other)
         else:
@@ -104,7 +104,7 @@ class Term:
                 new_coeff *= vp.eval(vars[vp.var])
             else:
                 new_vps.append(vp)
-        return Term(new_vps, new_coeff)
+        return Term(new_coeff, new_vps)
 
     def eval(self, **vars):
         """
@@ -123,7 +123,7 @@ class Term:
         var_powers = [vp for vp in self.var_powers if vp.var != excluded_var]
         coeff = self.coeff
         power_of_excluded_var = self.var_dict.get(excluded_var, 0)
-        return (Term(var_powers, coeff), power_of_excluded_var)
+        return (Term(coeff, var_powers), power_of_excluded_var)
 
     def key(self, var_list):
         return tuple(self.var_dict.get(var, 0) for var in var_list)
@@ -138,14 +138,14 @@ class Term:
         parms = list(powers.items())
         parms.sort()
         vps = [VarPower(var, power) for var, power in parms]
-        return Term(vps, coeff)
+        return Term(coeff, vps)
 
     def variables(self):
         return set(self.var_dict.keys())
 
     @staticmethod
     def constant(c):
-        return Term([], c)
+        return Term(c, [])
 
     @staticmethod
     def sum(terms):
@@ -165,14 +165,14 @@ class Term:
 
     @staticmethod
     def var(var):
-        return Term([VarPower(var, 1)], 1)
+        return Term(1, [VarPower(var, 1)])
 
     @staticmethod
     def vp(c, var, power):
         assert type(c) == int
         assert type(var) == str
         assert type(power) == int
-        return Term([VarPower(var, power)], c)
+        return Term(c, [VarPower(var, power)])
 
 
 class Poly:

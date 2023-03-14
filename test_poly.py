@@ -16,7 +16,7 @@ assert str(vpx**4) == "(x**12)"
 x = Term.var("x")
 y = Term.var("y")
 
-term = Term([vpn, vpx], 3)
+term = Term(3, [vpn, vpx])
 assert str(term) == "3*(n**5)*(x**3)"
 assert term.eval(n=2, x=4) == 3 * (2**5) * (4**3)
 
