@@ -203,6 +203,7 @@ class Poly:
             assert type(term) == Term
         self.terms = terms
         self.simplify()
+        self.put_terms_in_order()
 
     def __add__(self, other):
         return self.__radd__(other)
@@ -293,6 +294,10 @@ class Poly:
             assert type(value) in (int, float)
         return sum(term.eval(**vars) for term in self.terms)
 
+    def put_terms_in_order(self):
+        sorted_vars = sorted(self.variables())
+        self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
+
     def simplify(self):
         buckets = collections.defaultdict(list)
         for term in self.terms:
@@ -306,8 +311,6 @@ class Poly:
                 new_terms.append(term)
 
         self.terms = new_terms
-        sorted_vars = sorted(self.variables())
-        self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
 
     def variables(self):
         vars = set()
