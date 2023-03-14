@@ -136,9 +136,11 @@ class Term:
         return product
 
     def factorize_on_var(self, excluded_var):
+        if excluded_var not in self.var_dict:
+            return (self, 0)
         var_powers = [vp for vp in self.var_powers if vp.var != excluded_var]
         coeff = self.coeff
-        power_of_excluded_var = self.var_dict.get(excluded_var, 0)
+        power_of_excluded_var = self.var_dict[excluded_var]
         return (Term(coeff, var_powers), power_of_excluded_var)
 
     def is_one(self):
