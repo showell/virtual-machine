@@ -8,32 +8,37 @@ vpx = VarPower("x", 3)
 assert str(vpx) == "(x**3)"
 assert vpx.eval(2) == 8
 
+assert str(vpx**1) == "(x**3)"
 assert str(vpx**4) == "(x**12)"
-
 
 ## Term tests
 
 x = Term.var("x")
 y = Term.var("y")
 
+assert (x * 0).eval() == 0
+assert (x * 1).eval(x=7) == 7
+
 term = Term(3, [vpn, vpx])
 assert str(term) == "3*(n**5)*(x**3)"
+assert str(term**0) == "1"
+assert str(term**1) == "3*(n**5)*(x**3)"
 assert term.eval(n=2, x=4) == 3 * (2**5) * (4**3)
 
 term = Term.constant(17)
 assert term.eval() == 17
 
-term = Term.vp(5, "x", 2)
+term = 5 * x**2
 assert term.eval(x=4) == 80
 
-term = 3 * Term.vp(2, "x", 1)
+term = 3 * 2 * x
 assert term.eval(x=10) == 60
 
-term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
+term = 2 * x * 3 * (y**2) * 10 * (y**20)
 assert str(term) == "60*x*(y**22)"
 assert term.sig == "x*(y**22)"
 
-term = Term.vp(3, "x", 4) ** 3
+term = (3 * (x**4)) ** 3
 assert str(term) == "27*(x**12)"
 assert str(-term) == "(-27)*(x**12)"
 
@@ -98,6 +103,9 @@ diff_squares = (x + y) * (x - y)
 assert str(diff_squares) == "(x**2)+(-1)*(y**2)"
 assert str(diff_squares.apply(x=16)) == "(-1)*(y**2)+256"
 
+p = (x + 4) * (x - 4)
+assert str(p) == "(x**2)+(-16)"
+
 assert str(x**0) == "1"
 assert str((x + y) ** 1) == "x+y"
 assert str(x**2) == "(x**2)"
@@ -120,6 +128,7 @@ assert f == 33
 assert str(1 - x) == "(-1)*x+1"
 
 assert str(x + 0) == "x"
+assert str(x - 2) == "x+(-2)"
 assert str(x - x) == "0"
 assert str(x - x + y) == "y"
 
@@ -133,3 +142,5 @@ assert str(Poly.sum([y, x, z**2])) == "x+y+(z**2)"
 
 assert str(zero) == "0"
 assert zero.eval() == 0
+assert str(0 - x) == "(-1)*x"
+assert str(zero - x) == "(-1)*x"

@@ -28,6 +28,9 @@ class VarPower:
         self.power = power
 
     def __pow__(self, exponent):
+        assert exponent >= 1
+        if exponent == 1:
+            return self
         return VarPower(self.var, self.power * exponent)
 
     def __str__(self):
@@ -69,12 +72,23 @@ class Term:
 
     def __pow__(self, exponent):
         assert type(exponent) == int
+        assert exponent >= 0
+        if exponent == 0:
+            return Term.one()
+
+        if exponent == 1:
+            return self
+
         coeff = self.coeff**exponent
         vps = [vp**exponent for vp in self.var_powers]
         return Term(coeff, vps)
 
     def __rmul__(self, other):
         if type(other) == int:
+            if other == 0:
+                return Term.zero()
+            if other == 1:
+                assert self
             return Term(self.coeff * other, self.var_powers)
         elif type(other) == Term:
             return self.multiply_terms(other)
@@ -150,6 +164,10 @@ class Term:
         return Term(c, [])
 
     @staticmethod
+    def one():
+        return Term(1, [])
+
+    @staticmethod
     def sum(terms):
         # This is a helper for Poly.
         assert len(terms) >= 1
@@ -158,23 +176,22 @@ class Term:
 
         term = terms[0]
         sig = term.sig
+        coeff = term.coeff
+        var_powers = term.var_powers
         for other in terms[1:]:
             assert type(other) == Term
             assert other.sig == sig
-            term += other
+            coeff += other.coeff
 
-        return term
+        return Term(coeff, var_powers)
 
     @staticmethod
     def var(var):
         return Term(1, [VarPower(var, 1)])
 
     @staticmethod
-    def vp(c, var, power):
-        assert type(c) == int
-        assert type(var) == str
-        assert type(power) == int
-        return Term(c, [VarPower(var, power)])
+    def zero():
+        return Term(0, [])
 
 
 class Poly:
@@ -190,9 +207,6 @@ class Poly:
     def __add__(self, other):
         return self.__radd__(other)
 
-    def __sub__(self, other):
-        return self + other * (-1)
-
     def __mul__(self, other):
         return self.__rmul__(other)
 
@@ -203,13 +217,15 @@ class Poly:
         assert exponent >= 0
         assert type(exponent) == int
         if exponent == 0:
-            return Poly.constant(1)
+            return Poly.one()
         if exponent == 1:
             return self
         return self * self ** (exponent - 1)
 
     def __radd__(self, other):
         if type(other) == int:
+            if other == 0:
+                return self
             other = Poly.constant(other)
         assert type(other) == Poly
         return Poly(self.terms + other.terms)
@@ -233,6 +249,11 @@ class Poly:
         if len(self.terms) == 0:
             return "0"
         return "+".join(str(term) for term in self.terms)
+
+    def __sub__(self, other):
+        if type(other) == int:
+            return self + Poly.constant(-other)
+        return self + other * (-1)
 
     def apply(self, **vars):
         """
@@ -297,6 +318,10 @@ class Poly:
     @staticmethod
     def constant(c):
         return Poly([Term.constant(c)])
+
+    @staticmethod
+    def one():
+        return Poly.constant(1)
 
     @staticmethod
     def sum(poly_list):
