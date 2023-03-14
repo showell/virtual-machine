@@ -90,6 +90,22 @@ class Term:
             return self.sig
         return c_str + "*" + self.sig
 
+    def apply(self, **vars):
+        """
+        If we get passed in vars that we don't know about,
+        just ignore them.
+        """
+        for var in vars:
+            assert type(var) == str
+        new_coeff = self.coeff
+        new_vps = []
+        for vp in self.var_powers:
+            if vp.var in vars:
+                new_coeff *= vp.eval(vars[vp.var])
+            else:
+                new_vps.append(vp)
+        return Term(new_vps, new_coeff)
+
     def eval(self, **vars):
         """
         If we get passed in vars that we don't know about,
@@ -117,22 +133,6 @@ class Term:
         parms.sort()
         vps = [VarPower(var, power) for var, power in parms]
         return Term(vps, coeff)
-
-    def apply(self, **vars):
-        """
-        If we get passed in vars that we don't know about,
-        just ignore them.
-        """
-        for var in vars:
-            assert type(var) == str
-        new_coeff = self.coeff
-        new_vps = []
-        for vp in self.var_powers:
-            if vp.var in vars:
-                new_coeff *= vp.eval(vars[vp.var])
-            else:
-                new_vps.append(vp)
-        return Term(new_vps, new_coeff)
 
     def variables(self):
         return set(self.var_dict.keys())
@@ -224,17 +224,6 @@ class Poly:
     def __str__(self):
         return "+".join(str(term) for term in self.terms)
 
-    def eval(self, **vars):
-        my_vars = self.variables()
-        if len(set(vars)) < len(my_vars):
-            raise Exception("Not enough variables supplied. Maybe use apply?")
-
-        for var, value in vars.items():
-            if type(value) not in (int, float):
-                raise ValueError(f"The value {value} for var {var} is neither int nor float.")
-            assert type(value) in (int, float)
-        return sum(term.eval(**vars) for term in self.terms)
-
     def apply(self, **vars):
         """
         This does a partial application of a subset of variables to
@@ -259,6 +248,17 @@ class Poly:
         for value in vars.values():
             assert type(value) == int
         return Poly([term.apply(**vars) for term in self.terms])
+
+    def eval(self, **vars):
+        my_vars = self.variables()
+        if len(set(vars)) < len(my_vars):
+            raise Exception("Not enough variables supplied. Maybe use apply?")
+
+        for var, value in vars.items():
+            if type(value) not in (int, float):
+                raise ValueError(f"The value {value} for var {var} is neither int nor float.")
+            assert type(value) in (int, float)
+        return sum(term.eval(**vars) for term in self.terms)
 
     def simplify(self):
         buckets = collections.defaultdict(list)
