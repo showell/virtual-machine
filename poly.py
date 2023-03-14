@@ -207,7 +207,9 @@ class Term:
 class Poly:
     def __init__(self, terms):
         if type(terms) == Term:
-            raise Exception("Pass in a list of Terms or use Poly's other constructors.")
+            raise ValueError(
+                "Pass in a list of Terms or use Poly's other constructors."
+            )
         assert type(terms) == list
         for term in terms:
             assert type(term) == Term
@@ -245,7 +247,7 @@ class Poly:
         if type(other) == int:
             return Poly([term * other for term in self.terms])
         elif type(other) == Term:
-            raise Exception("Use Poly contructors to build up terms.")
+            raise ValueError("Use Poly contructors to build up terms.")
         assert type(other) == Poly
         terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
         return Poly(terms)
@@ -285,7 +287,7 @@ class Poly:
     def eval(self, **vars):
         my_vars = self.variables()
         if len(set(vars)) < len(my_vars):
-            raise Exception("Not enough variables supplied. Maybe use apply?")
+            raise ValueError("Not enough variables supplied. Maybe use apply?")
 
         for var, value in vars.items():
             if type(value) not in (int, float):
