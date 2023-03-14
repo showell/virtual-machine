@@ -263,22 +263,13 @@ class Poly:
         but I wanted to avoid confusion with possible future extensions
         related to partial derivates.
         """
-        int_vars = {}
-        poly = self
         for var, value in vars.items():
-            if type(value) == int:
-                int_vars[var] = value
-            elif type(value) is Poly:
-                assert False  # TODO
-            else:
+            if type(value) is Poly:
+                raise ValueError("Use Poly.substitute instead")
+            elif type(value) != int:
                 raise ValueError("Improper type supplied")
-        return poly.apply_int_vars(**int_vars)
-
-    def apply_int_vars(self, **vars):
         my_vars = self.variables()
         assert set(vars).issubset(my_vars)
-        for value in vars.values():
-            assert type(value) == int
         return Poly([term.apply(**vars) for term in self.terms])
 
     def eval(self, **vars):
@@ -311,6 +302,9 @@ class Poly:
                 new_terms.append(term)
 
         self.terms = new_terms
+
+    def substitute(self):
+        assert False # TODO
 
     def variables(self):
         vars = set()
