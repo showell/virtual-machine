@@ -30,7 +30,7 @@ Operation of a finite virtual machine:
             AX = 1 -> AX = 1
             AX = 0 -> AX = 0
 
-    Every program must include exactly 8 instructions.  If at the end
+    Every program must include exactly MAX_STEPS instructions.  If at the end
     of that program you have not accepted the input, then the input is
     implicitly rejected.
 
@@ -62,12 +62,14 @@ Operation of a finite virtual machine:
 
 import stepper
  
+MAX_STEPS = 8
+
 def run_progam(n, program):
     halted = False
     AX = n
     status = None
 
-    assert len(program) == 8
+    assert len(program) == MAX_STEPS
     
     for op in program:
         if halted:
@@ -114,7 +116,7 @@ def assemble(program):
 def disassemble(n):
     ops = ["pass", "check", "decr", "mod2"]
     program = []
-    for i in range(8):
+    for i in range(MAX_STEPS):
         program.append(ops[n % 4])
         n = n // 4
     return program
@@ -152,7 +154,7 @@ def find_solutions():
     solutions = {}
     for y in range(16):
         solutions[y] = []
-    for x in range(4**8):
+    for x in range(4**MAX_STEPS):
         solutions[f(x)].append(x)
 
     for y in range(16):
@@ -191,12 +193,12 @@ def find_solutions_analytically():
         return program + ["check"] + solve(lang[1:])
 
     def pad_with_passes(program):
-        return program + ["pass"] * (8 - len(program))
+        return program + ["pass"] * (MAX_STEPS - len(program))
 
     for y in range(16):
         lang = language(y)
         program = solve(lang)
-        assert len(program) < 8
+        assert len(program) < MAX_STEPS
         program = pad_with_passes(program)
         x = assemble(program)
         assert f(x) == y
