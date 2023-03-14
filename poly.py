@@ -312,7 +312,7 @@ class Poly:
         self.terms = new_terms
 
     def substitute(self):
-        assert False # TODO
+        assert False  # TODO
 
     def variables(self):
         vars = set()
