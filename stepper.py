@@ -1,19 +1,25 @@
 from poly import Poly
 
+
 def VAR(label):
     return Poly.var(label)
+
 
 def NOT(x):
     return 1 - x
 
+
 def AND(x, y):
     return x * y
+
 
 def OR(x, y):
     return (x + y) - (x * y)
 
+
 def OR3(x, y, z):
     return OR(OR(x, y), z)
+
 
 def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
     is_3 = AND(hb, lb)
@@ -32,11 +38,13 @@ def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
 
     is_even = OR(is_0, is_2)
     is_odd = OR(is_1, is_3)
-    
+
     becomes_3 = AND(is_3, stays_same)
     becomes_2 = OR(AND(is_2, stays_same), AND(is_3, runs_decr))
     becomes_1 = OR3(AND(is_1, stays_same), AND(is_2, runs_decr), AND(is_odd, runs_mod2))
-    becomes_0 = OR3(AND(is_0, stays_same), AND(is_1, runs_decr), AND(is_even, runs_mod2))
+    becomes_0 = OR3(
+        AND(is_0, stays_same), AND(is_1, runs_decr), AND(is_even, runs_mod2)
+    )
 
     accepted = OR(accepted, AND(is_0, runs_check))
 
@@ -47,6 +55,7 @@ def construct_polynomials(*, hb, lb, halted, accepted, op_hb, op_lb):
 
     return (hb_set, lb_set, halted, accepted)
 
+
 STEP_POLYNOMIALS = construct_polynomials(
     hb=VAR("hb"),
     lb=VAR("lb"),
@@ -55,6 +64,7 @@ STEP_POLYNOMIALS = construct_polynomials(
     op_hb=VAR("op_hb"),
     op_lb=VAR("op_lb"),
 )
+
 
 def step(*, AX, halted, accepted, op):
     assert AX in [0, 1, 2, 3]

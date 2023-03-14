@@ -61,8 +61,9 @@ Operation of a finite virtual machine:
 """
 
 import stepper
- 
+
 MAX_STEPS = 8
+
 
 def run_progam(n, program):
     halted = False
@@ -70,7 +71,7 @@ def run_progam(n, program):
     status = None
 
     assert len(program) == MAX_STEPS
-    
+
     for op in program:
         if halted:
             continue
@@ -84,8 +85,8 @@ def run_progam(n, program):
                 pass
         elif op == "decr":
             if AX == 0:
-               halted = True
-               status = False
+                halted = True
+                status = False
             else:
                 AX -= 1
         elif op == "mod2":
@@ -94,8 +95,10 @@ def run_progam(n, program):
             assert False
 
     return status
-                
+
+
 OPS = {"pass": 0, "check": 1, "decr": 2, "mod2": 3}
+
 
 def test_with_stepper(program, ax):
     AX = ax
@@ -110,8 +113,10 @@ def test_with_stepper(program, ax):
         )
     return accepted
 
+
 def assemble(program):
     return sum(OPS[op] * (4**i) for i, op in enumerate(program))
+
 
 def disassemble(n):
     ops = ["pass", "check", "decr", "mod2"]
@@ -120,12 +125,15 @@ def disassemble(n):
         program.append(ops[n % 4])
         n = n // 4
     return program
-        
+
+
 assert assemble(["check", "decr"]) == 9
 assert disassemble(9) == ["check", "decr"] + ["pass"] * 6
 
+
 def encoded_language(lang):
     return sum(2**n for n in lang)
+
 
 def language(code):
     lang = []
@@ -137,18 +145,21 @@ def language(code):
         i += 1
     return lang
 
+
 assert encoded_language([]) == 0
 assert language(0) == []
 assert encoded_language([1, 3]) == 10
 assert language(10) == [1, 3]
+
 
 def f(program_number):
     lang = []
     program = disassemble(program_number)
     for i in range(4):
         if run_progam(i, program):
-            lang.append(i) 
+            lang.append(i)
     return encoded_language(lang)
+
 
 def find_solutions():
     solutions = {}
@@ -163,23 +174,26 @@ def find_solutions():
         programs = [disassemble(x) for x in x_list]
         print(f"f(x) = {y} for {len(x_list)} values of x")
         print(f" an example program to recognize {lang} is:")
-        print('--')
+        print("--")
         example_program = programs[0]
         for cmd in example_program:
             print(cmd)
-        print('--')
+        print("--")
         print()
 
         for i in range(4):
             accepted = test_with_stepper(example_program, i)
             assert accepted == (i in lang)
 
+
 find_solutions()
+
 
 def find_solutions_analytically():
     """
     This only finds one solution to a language like [0, 1, 3].
     """
+
     def solve(lang):
         if not lang:
             # The program can terminate to reject all further numbers
@@ -188,7 +202,7 @@ def find_solutions_analytically():
         program = []
         while lang[0] > 0:
             program.append("decr")
-            lang = [i-1 for i in lang]
+            lang = [i - 1 for i in lang]
 
         return program + ["check"] + solve(lang[1:])
 
@@ -206,5 +220,6 @@ def find_solutions_analytically():
         for i in range(4):
             accepted = test_with_stepper(program, i)
             assert accepted == (i in lang)
+
 
 # find_solutions_analytically()
