@@ -97,6 +97,8 @@ class Term:
         """
         for var in vars:
             assert type(var) == str
+        if not set(vars) & set(self.var_dict):
+            return self
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
