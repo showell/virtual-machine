@@ -23,7 +23,7 @@ assert term.eval(x=10) == 60
 
 term = Term.vp(2, "x", 1) * Term.vp(3, "y", 2) * Term.vp(10, "y", 20)
 assert str(term) == "60*x*(y**22)"
-assert term.sig() == "x*(y**22)"
+assert term.sig == "x*(y**22)"
 
 term = Term.vp(3, "x", 4) ** 3
 assert str(term) == "27*(x**12)"

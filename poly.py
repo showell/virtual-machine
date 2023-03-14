@@ -50,11 +50,13 @@ class Term:
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
         self.coeff = coeff
+        self.var_set = {vp.var for vp in self.var_powers}
+        self.sig = "*".join(str(vp) for vp in self.var_powers)
 
     def __add__(self, other):
         assert type(other) == Term
         assert len(self.var_powers) == len(other.var_powers)
-        assert self.sig() == other.sig()
+        assert self.sig == other.sig
         return Term(self.var_powers, self.coeff + other.coeff)
 
     def __mul__(self, other):
@@ -83,8 +85,8 @@ class Term:
         if not self.var_powers:
             return c_str
         if self.coeff == 1:
-            return self.sig()
-        return c_str + "*" + self.sig()
+            return self.sig
+        return c_str + "*" + self.sig
 
     def eval(self, **vars):
         """
@@ -127,11 +129,8 @@ class Term:
                 new_vps.append(vp)
         return Term(new_vps, new_coeff)
 
-    def sig(self):
-        return "*".join(str(vp) for vp in self.var_powers)
-
     def variables(self):
-        return {vp.var for vp in self.var_powers}
+        return self.var_set
 
     @staticmethod
     def constant(c):
@@ -145,10 +144,10 @@ class Term:
             return terms[0]
 
         term = terms[0]
-        sig = term.sig()
+        sig = term.sig
         for other in terms[1:]:
             assert type(other) == Term
-            assert other.sig() == sig
+            assert other.sig == sig
             term += other
 
         return term
@@ -252,7 +251,7 @@ class Poly:
     def simplify(self):
         buckets = collections.defaultdict(list)
         for term in self.terms:
-            sig = term.sig()
+            sig = term.sig
             buckets[sig].append(term)
 
         new_terms = []
