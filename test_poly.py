@@ -34,7 +34,7 @@ assert str(x**2 + 5*x**2) == "6*(x**2)"
 
 t = Term.var("y") * Term.var("x") ** 2
 assert str(t) == "(x**2)*y" 
-assert t.vars() == {"x", "y"}
+assert t.variables() == {"x", "y"}
     
 x = Term.var("x")
 y = Term.var("y")
@@ -64,6 +64,7 @@ x = Poly.var("x")
 y = Poly.var("y")
 z = Poly.var("z")
 assert str(x+y+z) == "x+y+z"
+
 assert str(2*(x+y)) == "2*x+2*y"
 
 p = 3*x + y
@@ -90,3 +91,9 @@ assert str(p.reduce(y=1)) == "(x**6)+3*(x**4)+3*(x**2)+1"
 
 assert str(1+x) == "x+1"
 assert str((1+x)**2) == "(x**2)+2*x+1"
+
+assert (x**2+y+z).variables() == {"x", "y", "z"}
+
+p = 10*x + 10*y
+f = p.eval(x=1.1, y=2.2)
+assert f == 33

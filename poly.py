@@ -4,7 +4,7 @@ import collections
 The Poly class works purely with integer poynomials.
 
 It assumes the coefficients of the polynomials are integers,
-as well as the powers, and it assumes that you plug in integer
+as well as the powers, and it assumes that you plug in integer/float
 values for the variables once you are ready to compute a value
 of the polynomial.
 
@@ -90,14 +90,11 @@ class Term:
         """
         for var in vars:
             assert type(var) == str
-        assert set(vars) & self.vars() == self.vars()
+        assert self.variables().issubset(vars)
         product = self.coeff
         for vp in self.var_powers:
             product *= vp.eval(vars[vp.var])
         return product
-
-    def vars(self):
-        return {vp.var for vp in self.var_powers}
 
     def multiply_terms(self, other):
         coeff = self.coeff * other.coeff
@@ -129,6 +126,9 @@ class Term:
 
     def sig(self):
         return "*".join(str(vp) for vp in self.var_powers)
+
+    def variables(self):
+        return {vp.var for vp in self.var_powers}
 
     @staticmethod
     def constant(c):
@@ -212,9 +212,18 @@ class Poly:
         return "+".join(str(term) for term in self.terms)
 
     def eval(self, **vars):
+        my_vars = self.variables()
+        assert set(vars).issubset(my_vars)
+        if len(set(vars)) < len(my_vars):
+            raise Exception("Not enough variables supplied. Maybe use reduce?")
+
+        for value in vars.values():
+            assert type(value) in (int, float)
         return sum(term.eval(**vars) for term in self.terms)
 
     def reduce(self, **vars):
+        my_vars = self.variables()
+        assert set(vars).issubset(my_vars)
         return Poly([term.reduce(**vars) for term in self.terms])
 
     def simplify(self):
@@ -230,6 +239,12 @@ class Poly:
                 new_terms.append(term)
 
         self.terms = new_terms
+
+    def variables(self):
+        vars = set()
+        for term in self.terms:
+            vars |= term.variables()
+        return vars
 
     @staticmethod
     def constant(c):
