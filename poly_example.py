@@ -30,6 +30,12 @@ assert_str((3 * x + 1) ** 4, "81*(x**4)+108*(x**3)+54*(x**2)+12*x+1")
 assert_str(x + y + z - y, "x+z")
 assert_str((x + y) * (z + y), "x*y+x*z+(y**2)+y*z")
 
+# You can easily get binomial expansions.
+assert_str(
+    (x + y) ** 6,
+    "(x**6)+6*(x**5)*y+15*(x**4)*(y**2)+20*(x**3)*(y**3)+15*(x**2)*(y**4)+6*x*(y**5)+(y**6)",
+)
+
 # You can evaluate polynomials.
 h = Poly.var("height")
 w = Poly.var("width")
