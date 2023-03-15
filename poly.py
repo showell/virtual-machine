@@ -66,7 +66,7 @@ class Integer:
     evaluate the polynomial over assigned values.
 
     You could also override these methods to count the number of compute
-    steps, or to do code generation, or other strange things.
+    steps, or to memoize computations, or other strange things.
 
     I haven't tested any other schemes yet, so this code is pretty
     speculative.
