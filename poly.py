@@ -19,6 +19,7 @@ Useful references:
     * https://docs.python.org/3/library/operator.html
 """
 
+
 class Integer:
     """
     I believe this project could be pretty easily modified to work
@@ -26,6 +27,7 @@ class Integer:
 
     I try to set up the structure here to allow for future extensions.
     """
+
     zero = 0
     one = 1
     value_type = int
@@ -46,7 +48,7 @@ class Integer:
     def power(n, exp):
         assert type(n) == int
         assert type(exp) == int
-        return n ** exp
+        return n**exp
 
     @staticmethod
     def negate(n):
@@ -58,8 +60,10 @@ class Integer:
         assert type(n) == int
         return n - 1
 
+
 Ring = Integer
 assert type(Ring.zero) == int
+
 
 class _VarPower:
     """
