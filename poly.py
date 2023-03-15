@@ -305,8 +305,8 @@ class Poly:
         return self * (-1)
 
     def __pow__(self, exponent):
-        assert exponent >= 0
         assert type(exponent) == int
+        assert exponent >= 0
         if exponent == 0:
             return Poly.one()
         if exponent == 1:
