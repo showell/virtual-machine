@@ -11,6 +11,7 @@ def assert_equal(m, n):
         raise AssertionError(f"{m} != {n}")
 
 
+u = Poly.var("u")
 x = Poly.var("x")
 y = Poly.var("y")
 z = Poly.var("z")
@@ -103,6 +104,25 @@ assert_equal(p.apply(x=5, z=22).variables(), {"y"})
 
 # We allow silly calls to apply that do nothing.
 assert p.apply() == p
+
+# Compose functions
+f = x + 1
+g = y**2 + 3
+gf = g.substitute("y", f)
+assert gf == (x + 1) ** 2 + 3
+assert gf == x**2 + 2 * x + 4
+
+# For multi-variable fuctions, you can substitute variables as well.
+# (This is function composition in disguise.)
+
+assert (2 * x + 1).substitute("x", u + 3) == 2 * u + 7
+
+p = (2 * x + 1) * (2 * y + 1) * z
+assert_equal(p.variables(), {"x", "y", "z"})
+q = p.substitute("x", u + 3)
+assert_equal(q, (2 * u + 7) * (2 * y + 1) * z)
+assert_str(q, "4*u*y*z+2*u*z+14*y*z+7*z")
+assert_equal(q.variables(), {"u", "y", "z"})
 
 # Show that modular arithmetic over polynomials behaves correctly.
 # This is slightly hacky for now.
