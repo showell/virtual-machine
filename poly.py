@@ -68,7 +68,7 @@ class Integer:
     You could also override these methods to count the number of compute
     steps, or to memoize computations, or other strange things.
 
-    I haven't tested any other schemes yet, so this code is pretty
+    I haven't tested many other schemes yet, so this code is pretty
     speculative.
     """
     eval_add = add
