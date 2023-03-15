@@ -307,6 +307,9 @@ class _Term:
         vps = [_VarPower(var, power) for var, power in parms]
         return _Term(coeff, vps)
 
+    def transform_coefficient(self, f):
+        return _Term(f(self.coeff), self.var_powers)
+
     def variables(self):
         """
         If self represents something like 5*a*b*c, this method
@@ -530,6 +533,10 @@ class Poly:
                 new_poly = Poly([smaller_term]) * (poly**power)
             new_polys.append(new_poly)
         return Poly.sum(new_polys)
+
+    def transform_coefficients(self, f):
+        terms = [t.transform_coefficient(f) for t in self.terms]
+        return Poly(terms)
 
     def variables(self):
         vars = set()

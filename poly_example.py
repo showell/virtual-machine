@@ -109,13 +109,22 @@ assert p.apply() == p
 from poly import Value
 
 # Compute the polynomial over the space of integers.
-p = (x**3) + 5 * (y**7) + z * 11 + 37
+p = 23 * (x**3) + 41 * (y**5) + 17 * (z ** 7) + 37
+assert_str(p, "23*(x**3)+41*(y**5)+17*(z**7)+37")
 
-N = 13
-for x in range(N):
-    for y in range(N):
-        for z in range(N):
-            # Do a normal integer computation of the polynomial.
+MODULUS = 11
+mod = lambda n: n % MODULUS
+
+# Create a function q that operates on smaller numbers
+# with arithmetic relative to MODULUS.
+q = p.transform_coefficients(mod)
+assert_str(q, "(x**3)+8*(y**5)+6*(z**7)+4")
+
+# Show that p and q behave the same across their respective domains.
+for x in range(MODULUS * 2):
+    for y in range(MODULUS * 2):
+        for z in range(MODULUS * 2):
+            # Do a normal integer computation of the p polynomial.
             Value.eval_add = Value.add
             Value.eval_mul = Value.mul
             Value.eval_power = Value.power
@@ -123,15 +132,16 @@ for x in range(N):
 
             big_result = p.eval(x=x, y=y, z=z)
 
-            # Compute the polynomial with modular arithmetic.
-            Value.eval_add = lambda a, b: (a + b) % N
-            Value.eval_mul = lambda a, b: (a * b) % N
-            Value.eval_power = lambda n, exp: ((n % N) ** exp) % N
-            Value.eval_coeff_mul = lambda a, b: (a * b) % N
+            # Compute the q polynomial with modular arithmetic.
+            Value.eval_add = lambda a, b: mod(a + b)
+            Value.eval_mul = lambda a, b: mod(a * b)
+            Value.eval_power = lambda n, exp: mod(n ** exp)
+            Value.eval_coeff_mul = lambda a, b: mod(a * b)
 
-            small_result = p.eval(x=x, y=y, z=z)
+            small_result = q.eval(x=mod(x), y=mod(y), z=mod(z))
 
-            # prove we are doing something non-trivial here
+            # assert we are doing something non-trivial here
             assert small_result != big_result
 
-            assert_equal(big_result % N, small_result)
+            # verify that mod(p(x,y,z)) == q(mod(x), mod(y), mod(z)) 
+            assert_equal(mod(big_result), small_result)
