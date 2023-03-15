@@ -1,5 +1,12 @@
 from poly import _VarPower, _Term, Poly
 
+"""
+These are very raw tests that I built up while developing the 
+library.
+
+For more polished examples see poly_example.py
+"""
+
 vpn = _VarPower("n", 5)
 assert str(vpn) == "(n**5)"
 assert vpn.eval(2) == 32

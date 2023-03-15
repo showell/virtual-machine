@@ -14,6 +14,9 @@ It supports an arbitrary combination of variables, and for
 convenience sake, it prevents you from having punctuation
 characters in variables that would conflict with operators
 like +, -, *, etc.
+
+Useful references:
+    * https://docs.python.org/3/library/operator.html
 """
 
 
@@ -316,6 +319,31 @@ class Poly:
     def __add__(self, other):
         return self.__radd__(other)
 
+    def __eq__(self, other):
+        """
+        Two Poly objects are considered equal if they have the
+        same canonical representation after simplification.
+
+        Any two Poly objects that are equal under this definition
+        should also return the exact same values when you call
+        their eval methods for any particular combination of
+        variable assignments (using integers).
+
+        I believe the converse is true over the integers.  In other
+        words if two Poly objects are reported NOT to be equal
+        by this method, that should imply that there exists at
+        least one possible assignment of integer values to the
+        variables that will produce different eval() results from
+        the two "non-equal" polynomials.
+
+        Note that we only consider two polynomials to be equivalent
+        if they use the same set of variable names.  While
+        x+3 and y+3 are structurally equivalent, we consider them
+        to be non-equal.
+        """
+        assert type(other) == Poly
+        return str(self) == str(other)
+
     def __mul__(self, other):
         return self.__rmul__(other)
 
@@ -483,7 +511,7 @@ class Poly:
         coeff = 1
         power = 1
         var_power = _VarPower(label, power)
-        term = _Term(coeff, [var_power]) 
+        term = _Term(coeff, [var_power])
         return Poly([term])
 
     @staticmethod
