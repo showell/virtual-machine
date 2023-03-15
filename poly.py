@@ -19,6 +19,47 @@ Useful references:
     * https://docs.python.org/3/library/operator.html
 """
 
+class Integer:
+    """
+    I believe this project could be pretty easily modified to work
+    with any commutative ring, but I have only tested with integers.
+
+    I try to set up the structure here to allow for future extensions.
+    """
+    zero = 0
+    one = 1
+    value_type = int
+
+    @staticmethod
+    def add(a, b):
+        assert type(a) == int
+        assert type(b) == int
+        return a + b
+
+    @staticmethod
+    def mul(a, b):
+        assert type(a) == int
+        assert type(b) == int
+        return a * b
+
+    @staticmethod
+    def power(n, exp):
+        assert type(n) == int
+        assert type(exp) == int
+        return n ** exp
+
+    @staticmethod
+    def negate(n):
+        assert type(n) == int
+        return -n
+
+    @staticmethod
+    def decr(n):
+        assert type(n) == int
+        return n - 1
+
+Ring = Integer
+assert type(Ring.zero) == int
 
 class _VarPower:
     """
@@ -36,24 +77,24 @@ class _VarPower:
         assert type(var) == str
         for c in ",*+/-()":
             assert not c in var
-        assert type(power) == int
-        assert power >= 0
+        assert type(power) == Ring.value_type
+        assert power >= Ring.zero
         self.var = var
         self.power = power
 
     def __pow__(self, exponent):
-        assert exponent >= 1
-        if exponent == 1:
+        assert exponent >= Ring.one
+        if exponent == Ring.one:
             return self
-        return _VarPower(self.var, self.power * exponent)
+        return _VarPower(self.var, Ring.mul(self.power, exponent))
 
     def __str__(self):
-        if self.power == 1:
+        if self.power == Ring.one:
             return self.var
         return f"({self.var}**{self.power})"
 
     def eval(self, x):
-        return x**self.power
+        return Ring.power(x, self.power)
 
 
 class _Term:
@@ -78,7 +119,7 @@ class _Term:
         assert type(var_powers) == list
         for var_power in var_powers:
             assert (type(var_power)) == _VarPower
-        assert type(coeff) == int
+        assert type(coeff) == Ring.value_type
         vars = [vp.var for vp in var_powers]
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
@@ -97,24 +138,24 @@ class _Term:
         assert type(other) == _Term
         assert len(self.var_powers) == len(other.var_powers)
         assert self.sig == other.sig
-        return _Term(self.coeff + other.coeff, self.var_powers)
+        return _Term(Ring.add(self.coeff, other.coeff), self.var_powers)
 
     def __mul__(self, other):
         return self.__rmul__(other)
 
     def __neg__(self):
-        return _Term(-1 * self.coeff, self.var_powers)
+        return _Term(Ring.negate(self.coeff), self.var_powers)
 
     def __pow__(self, exponent):
         assert type(exponent) == int
-        assert exponent >= 0
-        if exponent == 0:
+        assert exponent >= Ring.zero
+        if exponent == Ring.zero:
             return _Term.one()
 
-        if exponent == 1:
+        if exponent == Ring.one:
             return self
 
-        coeff = self.coeff**exponent
+        coeff = Ring.power(self.coeff, exponent)
         vps = [vp**exponent for vp in self.var_powers]
         return _Term(coeff, vps)
 
@@ -124,12 +165,12 @@ class _Term:
         write something like 5*(x**2) than (x**2)*5, so we
         support the __rmul__ protocol.
         """
-        if type(other) == int:
-            if other == 0:
+        if type(other) == Ring.value_type:
+            if other == Ring.zero:
                 return _Term.zero()
-            if other == 1:
+            if other == Ring.one:
                 assert self
-            return _Term(self.coeff * other, self.var_powers)
+            return _Term(Ring.mul(self.coeff, other), self.var_powers)
         elif type(other) == _Term:
             return self.multiply_terms(other)
         else:
@@ -143,7 +184,7 @@ class _Term:
         c_str = str(c) if c > 0 else f"({c})"
         if not self.var_powers:
             return c_str
-        if self.coeff == 1:
+        if self.coeff == Ring.one:
             return self.sig
         return c_str + "*" + self.sig
 
@@ -167,7 +208,7 @@ class _Term:
         """
         for var, value in vars.items():
             assert type(var) == str
-            assert type(value) == int
+            assert type(value) == Ring.value_type
         if not set(vars) & set(self.var_dict):
             return self
         new_coeff = self.coeff
@@ -175,7 +216,7 @@ class _Term:
         for vp in self.var_powers:
             if vp.var in vars:
                 value = vars[vp.var]
-                new_coeff *= vp.eval(value)
+                new_coeff = Ring.mul(new_coeff, vp.eval(value))
             else:
                 new_vps.append(vp)
         return _Term(new_coeff, new_vps)
@@ -192,11 +233,11 @@ class _Term:
         """
         for var, value in vars.items():
             assert type(var) == str
-            assert type(value) in [int, float]
+            assert type(value) == Ring.value_type
         assert self.variables().issubset(vars)
         product = self.coeff
         for vp in self.var_powers:
-            product *= vp.eval(vars[vp.var])
+            product = Ring.mul(product, vp.eval(vars[vp.var]))
         return product
 
     def factorize_on_var(self, substituted_var):
@@ -207,14 +248,14 @@ class _Term:
         and reports the power of the substituted variable.
         """
         if substituted_var not in self.var_dict:
-            return (self, 0)
+            return (self, Ring.zero)
 
         var_powers = [vp for vp in self.var_powers if vp.var != substituted_var]
         power_of_substituted_var = self.var_dict[substituted_var]
         return (_Term(self.coeff, var_powers), power_of_substituted_var)
 
     def is_one(self):
-        return self.coeff == 1 and len(self.var_powers) == 0
+        return self.coeff == Ring.one and len(self.var_powers) == 0
 
     def multiply_terms(self, other):
         """
@@ -224,7 +265,7 @@ class _Term:
 
         The coefficient is trivial--just multiply the two coefficients.
 
-        For the VarPower pieces, we use a defaultdict to collect common
+        For the VarPower pieces, we use a dict to collect common
         variables.
         """
         if other.coeff == 0:
@@ -232,12 +273,15 @@ class _Term:
         elif other.is_one():
             return self
 
-        coeff = self.coeff * other.coeff
-        powers = collections.defaultdict(int)
+        coeff = Ring.mul(self.coeff, other.coeff)
+        powers = dict()
         for vp in self.var_powers:
             powers[vp.var] = vp.power
         for vp in other.var_powers:
-            powers[vp.var] += vp.power
+            if vp.var in powers:
+                powers[vp.var] = Ring.add(powers[vp.var], vp.power)
+            else:
+                powers[vp.var] = vp.power
         parms = list(powers.items())
         parms.sort()
         vps = [_VarPower(var, power) for var, power in parms]
@@ -253,11 +297,12 @@ class _Term:
 
     @staticmethod
     def constant(c):
+        assert type(c) == Ring.value_type
         return _Term(c, [])
 
     @staticmethod
     def one():
-        return _Term(1, [])
+        return _Term(Ring.one, [])
 
     @staticmethod
     def sum(terms):
@@ -282,7 +327,7 @@ class _Term:
         for other in terms[1:]:
             assert type(other) == _Term
             assert other.sig == sig
-            coeff += other.coeff
+            coeff = Ring.add(coeff, other.coeff)
 
         return _Term(coeff, var_powers)
 
@@ -291,16 +336,16 @@ class _Term:
         This is used by Poly to sort terms in the normal high
         school algebra format.
         """
-        return tuple(self.var_dict.get(var, 0) for var in var_list)
+        return tuple(self.var_dict.get(var, Ring.zero) for var in var_list)
 
     @staticmethod
     def var(var):
         assert type(var) == str
-        return _Term(1, [_VarPower(var, 1)])
+        return _Term(Ring.one, [_VarPower(var, Ring.one)])
 
     @staticmethod
     def zero():
-        return _Term(0, [])
+        return _Term(Ring.zero, [])
 
 
 class Poly:
@@ -348,20 +393,20 @@ class Poly:
         return self.__rmul__(other)
 
     def __neg__(self):
-        return self * (-1)
+        return Poly([-term for term in self.terms])
 
     def __pow__(self, exponent):
-        assert type(exponent) == int
-        assert exponent >= 0
-        if exponent == 0:
+        assert type(exponent) == Ring.value_type
+        assert exponent >= Ring.zero
+        if exponent == Ring.zero:
             return Poly.one()
-        if exponent == 1:
+        if exponent == Ring.one:
             return self
-        return self * self ** (exponent - 1)
+        return self * self ** Ring.decr(exponent)
 
     def __radd__(self, other):
-        if type(other) == int:
-            if other == 0:
+        if type(other) == Ring.value_type:
+            if other == Ring.zero:
                 return self
             other = Poly.constant(other)
         assert type(other) == Poly
@@ -384,13 +429,13 @@ class Poly:
 
     def __str__(self):
         if len(self.terms) == 0:
-            return "0"
+            return str(Ring.zero)
         return "+".join(str(term) for term in self.terms)
 
     def __sub__(self, other):
-        if type(other) == int:
+        if type(other) == Ring.value_type:
             return self + Poly.constant(-other)
-        return self + other * (-1)
+        return self + (-other)
 
     def apply(self, **vars):
         """
@@ -402,7 +447,7 @@ class Poly:
         for var, value in vars.items():
             if type(value) is Poly:
                 raise ValueError("Use Poly.substitute instead")
-            elif type(value) != int:
+            elif type(value) != Ring.value_type:
                 raise ValueError("Improper type supplied")
         my_vars = self.variables()
         assert set(vars).issubset(my_vars)
@@ -418,8 +463,12 @@ class Poly:
                 raise ValueError(
                     f"The value {value} for var {var} is neither int nor float."
                 )
-            assert type(value) in (int, float)
-        return sum(term.eval(**vars) for term in self.terms)
+            assert type(value) == Ring.value_type
+
+        result = Ring.zero
+        for term in self.terms:
+            result = Ring.add(result, term.eval(**vars))
+        return result
 
     def put_terms_in_order(self):
         if len(self.terms) <= 1:
@@ -432,7 +481,7 @@ class Poly:
         if len(terms) == 0:
             return
         if len(terms) == 1:
-            if terms[0].coeff == 0:
+            if terms[0].coeff == Ring.zero:
                 self.terms = []
             return
         buckets = collections.defaultdict(list)
@@ -443,7 +492,7 @@ class Poly:
         new_terms = []
         for sub_terms in buckets.values():
             term = _Term.sum(sub_terms)
-            if term.coeff != 0:
+            if term.coeff != Ring.zero:
                 new_terms.append(term)
 
         self.terms = new_terms
@@ -455,7 +504,7 @@ class Poly:
         new_polys = []
         for term in self.terms:
             smaller_term, power = term.factorize_on_var(var)
-            if power == 0:
+            if power == Ring.zero:
                 new_poly = Poly([smaller_term])
             else:
                 new_poly = Poly([smaller_term]) * (poly**power)
@@ -470,11 +519,12 @@ class Poly:
 
     @staticmethod
     def constant(c):
+        assert type(c) == Ring.value_type
         return Poly([_Term.constant(c)])
 
     @staticmethod
     def one():
-        return Poly.constant(1)
+        return Poly.constant(Ring.one)
 
     @staticmethod
     def sum(poly_list):
@@ -508,8 +558,8 @@ class Poly:
         _Term, and Poly.
         """
         assert type(label) == str
-        coeff = 1
-        power = 1
+        coeff = Ring.one
+        power = Ring.one
         var_power = _VarPower(label, power)
         term = _Term(coeff, [var_power])
         return Poly([term])

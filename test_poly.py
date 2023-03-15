@@ -139,10 +139,6 @@ assert str((1 + x) ** 2) == "(x**2)+2*x+1"
 
 assert (x**2 + y + z).variables() == {"x", "y", "z"}
 
-p = 10 * x + 10 * y
-f = p.eval(x=1.1, y=2.2)
-assert f == 33
-
 assert str(1 - x) == "(-1)*x+1"
 
 assert str(x + 0) == "x"
