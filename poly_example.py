@@ -81,3 +81,16 @@ assert b + b == 2 * b
 assert a + b == b + a
 assert a * b == b * a
 assert (a + 3) ** 2 == a**2 + 6 * a + 9
+
+# You can do partial application of variables on polynomials
+assert (x + y**2).apply(y=2) == x + 4
+assert (x + y**2 + z).apply(y=3) == x + z + 9
+assert (x + y + z + 4).apply(x=1000, y=200, z=30).eval() == 1234
+assert (x + y + z + 4).apply(x=1000, y=200).eval(z=30) == 1234
+
+# Partial application always returns a new polynomial.
+p = (x + 43) * (y - 37) * (z + 2)
+assert type(p.apply(x=5, y=2, z=44)) == Poly
+assert type(p.apply(x=9, y=8)) == Poly
+assert type(p.apply(x=5, z=44)) == Poly
+assert p.apply() == p

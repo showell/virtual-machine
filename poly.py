@@ -60,7 +60,7 @@ class Integer:
         return -n
 
     """
-    For certain exotic use cases like boolean evaluation, you may wish
+    For certain exotic use cases like modular arithmetic, you may wish
     to stay in integer space while you build up a polynomial from expressions,
     but then you may use a different type of arithmetic once you actually
     evaluate the polynomial over assigned values.
