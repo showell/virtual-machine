@@ -469,7 +469,22 @@ class Poly:
 
     @staticmethod
     def var(label):
-        return Poly([_Term.var(label)])
+        """
+        Create a single-term polynomial with coefficient 1 and
+        degree 1.
+
+        Note that label is just the name of a variable like "x".
+        (It might feel strange to folks that we don't have any
+        objects corresponding directly to a variable--instead,
+        variables are just implicitly used inside of _VarPower,
+        _Term, and Poly.
+        """
+        assert type(label) == str
+        coeff = 1
+        power = 1
+        var_power = _VarPower(label, power)
+        term = _Term(coeff, [var_power]) 
+        return Poly([term])
 
     @staticmethod
     def zero():
