@@ -103,3 +103,35 @@ assert_equal(p.apply(x=5, z=22).variables(), {"y"})
 
 # We allow silly calls to apply that do nothing.
 assert p.apply() == p
+
+# Show that modular arithmetic over polynomials behaves correctly.
+# This is slightly hacky for now.
+from poly import Value
+
+# Compute the polynomial over the space of integers.
+p = (x**3) + 5 * (y**7) + z * 11 + 37
+
+N = 13
+for x in range(N):
+    for y in range(N):
+        for z in range(N):
+            # Do a normal integer computation of the polynomial.
+            Value.eval_add = Value.add
+            Value.eval_mul = Value.mul
+            Value.eval_power = Value.power
+            Value.eval_coeff_mul = Value.mul
+
+            big_result = p.eval(x=x, y=y, z=z)
+
+            # Compute the polynomial with modular arithmetic.
+            Value.eval_add = lambda a, b: (a + b) % N
+            Value.eval_mul = lambda a, b: (a * b) % N
+            Value.eval_power = lambda n, exp: ((n % N) ** exp) % N
+            Value.eval_coeff_mul = lambda a, b: (a * b) % N
+
+            small_result = p.eval(x=x, y=y, z=z)
+
+            # prove we are doing something non-trivial here
+            assert small_result != big_result
+
+            assert_equal(big_result % N, small_result)
