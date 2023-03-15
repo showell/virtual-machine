@@ -64,11 +64,17 @@ class Integer:
     to stay in integer space while you build up a polynomial from expressions,
     but then you may use a different type of arithmetic once you actually
     evaluate the polynomial over assigned values.
+
+    You could also override these methods to count the number of compute
+    steps, or to do code generation, or other strange things.
+
+    I haven't tested any other schemes yet, so this code is pretty
+    speculative.
     """
     eval_add = add
     eval_mul = mul
     eval_power = power
-    coeff_mul = mul
+    eval_coeff_mul = mul
 
 
 Value = Integer
@@ -252,7 +258,7 @@ class _Term:
         product = Value.one
         for vp in self.var_powers:
             product = Value.eval_mul(product, vp.eval(vars[vp.var]))
-        return Value.coeff_mul(self.coeff, product)
+        return Value.eval_coeff_mul(self.coeff, product)
 
     def factorize_on_var(self, substituted_var):
         """
