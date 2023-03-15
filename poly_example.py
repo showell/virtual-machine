@@ -147,7 +147,7 @@ assert_equal(q.variables(), {"u", "y", "z"})
 
 # Show that modular arithmetic over polynomials behaves correctly.
 # This is slightly hacky for now.
-from poly import Value
+from poly import Value, Integer
 
 # Compute the polynomial over the space of integers.
 p = 23 * (x**3) + 44 * (y**5) + 17 * (z**7) + 37
@@ -168,9 +168,9 @@ for x in range(MODULUS * 2):
     for y in range(MODULUS * 2):
         for z in range(MODULUS * 2):
             # Do a normal integer computation of the p polynomial.
-            Value.eval_add = Value.add
-            Value.eval_mul = Value.mul
-            Value.eval_coeff_mul = Value.mul
+            Value.eval_add = Integer.add
+            Value.eval_mul = Integer.mul
+            Value.eval_coeff_mul = Integer.mul
 
             big_result = p.eval(x=x, y=y, z=z)
 
