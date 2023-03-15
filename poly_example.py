@@ -49,45 +49,60 @@ assert_equal(p.eval(x=1000, y=10), 3001 * 435)
 assert_equal(p.eval(x=1000, y=100), 3001 * 40305)
 
 # Polynomials get simplified and stringifed in a consistent manner.
-a = 2 * x + 3 * z + y
-b = 4 * z + y + x
-assert_equal(str(a * a), str(a**2))
-assert_equal(str(a + a), str(2 * a))
-assert_equal(str(b + b), str(2 * b))
-assert_equal(str(a + b), str(b + a))
-assert_equal(str(a * b), str(b * a))
+p = 2 * x + 3 * z + y
+q = 4 * z + y + x
+assert_equal(str(p * p), str(p**2))
+assert_equal(str(p + p), str(2 * p))
+assert_equal(str(q + q), str(2 * q))
+assert_equal(str(p + q), str(q + p))
+assert_equal(str(p * q), str(q * p))
 
 # We allow "==" between Poly objects, and equality means that
 # the two polynomials use the same variable names and compute
 # values in an identical fashion.
-assert a != b
-assert a**2 != b**2
+p = 12 * x + 39 * (z**4)
+q = z + 111 * y + x - 2
 
-assert a != a + 1
-assert a != a - 3
-assert a * 3 != a * 2
-assert a**4 != a**3
+assert zero != one
+assert one != zero
+assert x != y
+assert p != q
+assert p**2 != q**2
+
+assert p != p + 1
+assert p != p - 3
+assert p * 3 != p * 2
+assert p**4 != p**3
 
 assert one == zero + 1
 assert two == one + 1
 assert three == two + 1
 
-assert 0 * a == a * 0
-assert 1 * a == a * 1
-assert 2 * a == a + a
-assert 3 * a == a + a + a
-assert a - a == zero
-assert 2 * a - a - a == zero
-assert zero + a == a + 0
-assert one + a == a + 1
-assert 2 * one + a == a + 2
-assert three * a == a + a + a
-assert a * a == a**2
-assert a + a == two * a
-assert b + b == 2 * b
-assert a + b == b + a
-assert a * b == b * a
-assert (a + 3) ** 2 == a**2 + 6 * a + 9
+assert one * 1 == one
+assert two * 1 == two
+assert three * 1 == three
+
+assert one - 1 == zero
+assert two - 1 == one
+assert three - 1 == two
+
+assert 0 * p == p * 0
+assert 1 * p == p * 1
+assert 2 * p == p + p
+assert 3 * p == p + p + p
+assert p - p == zero
+assert 2 * p - p - p == zero
+assert zero + p == p + 0
+assert one + p == p + 1
+assert 2 * one + p == p + 2
+assert three * p == p + p + p
+assert p * p == p**2
+assert p + p == two * p
+assert q + q == 2 * q
+assert p + q == q + p
+assert p * q == q * p
+assert 2 * p + q == p + p + q
+assert (p + 3) ** 2 == p**2 + 6 * p + 9
 
 # You can do partial application of variable assignments on polynomials.
 assert (x + y**2).apply(y=2) == x + 4
