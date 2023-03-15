@@ -153,29 +153,43 @@ class _Term:
 
     def apply(self, **vars):
         """
+        This substitutes variables in our term with actual
+        integers, producing a simpler Term.
+
         If we get passed in vars that we don't know about,
         just ignore them.
+
+        If none of the vars are in our term, then we just
+        return ourself.  See Poly.apply for more context.
         """
-        for var in vars:
+        for var, value in vars.items():
             assert type(var) == str
+            assert type(value) == int
         if not set(vars) & set(self.var_dict):
             return self
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
             if vp.var in vars:
-                new_coeff *= vp.eval(vars[vp.var])
+                value = vars[vp.var]
+                new_coeff *= vp.eval(value)
             else:
                 new_vps.append(vp)
         return _Term(new_coeff, new_vps)
 
     def eval(self, **vars):
         """
+        This function returns the actual numerical value of
+        our term given values for all its variables.
+
         If we get passed in vars that we don't know about,
-        just ignore them.
+        just ignore them. (That relieves Poly from having
+        to check each of its terms to see which variables
+        are used.)
         """
-        for var in vars:
+        for var, value in vars.items():
             assert type(var) == str
+            assert type(value) in [int, float]
         assert self.variables().issubset(vars)
         product = self.coeff
         for vp in self.var_powers:
@@ -198,9 +212,6 @@ class _Term:
 
     def is_one(self):
         return self.coeff == 1 and len(self.var_powers) == 0
-
-    def key(self, var_list):
-        return tuple(self.var_dict.get(var, 0) for var in var_list)
 
     def multiply_terms(self, other):
         """
@@ -271,6 +282,13 @@ class _Term:
             coeff += other.coeff
 
         return _Term(coeff, var_powers)
+
+    def sort_key(self, var_list):
+        """
+        This is used by Poly to sort terms in the normal high
+        school algebra format.
+        """
+        return tuple(self.var_dict.get(var, 0) for var in var_list)
 
     @staticmethod
     def var(var):
@@ -379,7 +397,7 @@ class Poly:
         if len(self.terms) <= 1:
             return
         sorted_vars = sorted(self.variables())
-        self.terms.sort(key=lambda term: term.key(sorted_vars), reverse=True)
+        self.terms.sort(key=lambda term: term.sort_key(sorted_vars), reverse=True)
 
     def simplify(self):
         terms = self.terms
