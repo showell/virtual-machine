@@ -28,6 +28,7 @@ class _VarPower:
     You never want to use this class directly; go through Poly
     instead.
     """
+
     def __init__(self, var, power):
         assert type(var) == str
         for c in ",*+/-()":
@@ -69,6 +70,7 @@ class _Term:
     as well as a "sig" that represents the signature of our term.
     Two terms can only be combined if they have the same sig.
     """
+
     def __init__(self, coeff, var_powers):
         assert type(var_powers) == list
         for var_power in var_powers:
@@ -201,6 +203,16 @@ class _Term:
         return tuple(self.var_dict.get(var, 0) for var in var_list)
 
     def multiply_terms(self, other):
+        """
+        It is always possible to multiply two terms together, whether
+        they have the same exact variables, disjoint variables, or some
+        common subset of overlapping variables.
+
+        The coefficient is trivial--just multiply the two coefficients.
+
+        For the VarPower pieces, we use a defaultdict to collect common
+        variables.
+        """
         if other.coeff == 0:
             return _Term.zero()
         elif other.is_one():
@@ -218,6 +230,11 @@ class _Term:
         return _Term(coeff, vps)
 
     def variables(self):
+        """
+        If self represents something like 5*a*b*c, this method
+        returns {"a", "b", "c"}.  This helps Poly determine the
+        set of variables across all terms.
+        """
         return set(self.var_dict.keys())
 
     @staticmethod
@@ -230,7 +247,16 @@ class _Term:
 
     @staticmethod
     def sum(terms):
-        # This is a helper for Poly.
+        """
+        This is a helper for Poly.
+        It will only call us with terms that have the same sig.
+
+        It essentially just adds up coefficients.
+
+        We also special-case the situation where there is only
+        one term in the sum, since there is no need to create
+        new objects in that case, as _Term objects are immutable.
+        """
         assert len(terms) >= 1
         if len(terms) == 1:
             return terms[0]
@@ -248,6 +274,7 @@ class _Term:
 
     @staticmethod
     def var(var):
+        assert type(var) == str
         return _Term(1, [_VarPower(var, 1)])
 
     @staticmethod
