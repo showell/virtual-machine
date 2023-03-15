@@ -73,7 +73,6 @@ class Integer:
     """
     eval_add = add
     eval_mul = mul
-    eval_power = power
     eval_coeff_mul = mul
 
 
@@ -114,7 +113,12 @@ class _VarPower:
         return f"({self.var}**{self.power})"
 
     def eval(self, x):
-        return Value.eval_power(x, self.power)
+        "Compute this the difficult way."
+        result = Value.one
+        for i in range(self.power):
+            result = Value.mul(result, x)
+
+        return result
 
 
 class _Term:
