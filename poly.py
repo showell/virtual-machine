@@ -26,6 +26,10 @@ class Integer:
     with any commutative ring, but I have only tested with integers.
 
     I try to set up the structure here to allow for future extensions.
+
+    Note that even over a non-integer field of values, we would still
+    have to enforce non-negative integer exponents to support
+    the "substitution" operation on polynomials.
     """
 
     zero = 0
@@ -55,11 +59,6 @@ class Integer:
         assert type(n) == int
         return -n
 
-    @staticmethod
-    def decr(n):
-        assert type(n) == int
-        return n - 1
-
 
 Ring = Integer
 assert type(Ring.zero) == int
@@ -81,16 +80,17 @@ class _VarPower:
         assert type(var) == str
         for c in ",*+/-()":
             assert not c in var
-        assert type(power) == Ring.value_type
-        assert power >= Ring.zero
+        assert type(power) == int
+        assert power >= 0
         self.var = var
         self.power = power
 
     def __pow__(self, exponent):
-        assert exponent >= Ring.one
-        if exponent == Ring.one:
+        assert type(exponent) == int
+        assert exponent >= 1
+        if exponent == 1:
             return self
-        return _VarPower(self.var, Ring.mul(self.power, exponent))
+        return _VarPower(self.var, self.power * exponent)
 
     def __str__(self):
         if self.power == Ring.one:
@@ -152,11 +152,11 @@ class _Term:
 
     def __pow__(self, exponent):
         assert type(exponent) == int
-        assert exponent >= Ring.zero
-        if exponent == Ring.zero:
+        assert exponent >= 0
+        if exponent == 0:
             return _Term.one()
 
-        if exponent == Ring.one:
+        if exponent == 1:
             return self
 
         coeff = Ring.power(self.coeff, exponent)
@@ -400,13 +400,13 @@ class Poly:
         return Poly([-term for term in self.terms])
 
     def __pow__(self, exponent):
-        assert type(exponent) == Ring.value_type
-        assert exponent >= Ring.zero
-        if exponent == Ring.zero:
+        assert type(exponent) == int
+        assert exponent >= 0
+        if exponent == 0:
             return Poly.one()
-        if exponent == Ring.one:
+        if exponent == 1:
             return self
-        return self * self ** Ring.decr(exponent)
+        return self * self ** (exponent - 1)
 
     def __radd__(self, other):
         if type(other) == Ring.value_type:
