@@ -18,6 +18,16 @@ like +, -, *, etc.
 
 
 class _VarPower:
+    """
+    This helper class represents a simple power of a variable
+    such as "(x**4)", with no coefficient.
+
+    A variable is a simple Python string--there is no need
+    to wrap it any sort of Symbol class.
+
+    You never want to use this class directly; go through Poly
+    instead.
+    """
     def __init__(self, var, power):
         assert type(var) == str
         for c in ",*+/-()":
@@ -43,6 +53,22 @@ class _VarPower:
 
 
 class _Term:
+    """
+    This helper class represents a single term of a polynomial,
+    and it's really only intended as a helper for Poly, despite
+    it having significant functionality.
+
+    A term would be something like 2*(x**3)*(y**3), but you can
+    also have constant terms.  For constants, see the methods
+    for "zero", "one", and "constant".
+
+    Our basic data structure simply stores an integer coefficient
+    (abbreviated as "coeff") and a list of VarPowers.
+
+    We also keep a dictionary keyed on var names for quick lookups,
+    as well as a "sig" that represents the signature of our term.
+    Two terms can only be combined if they have the same sig.
+    """
     def __init__(self, coeff, var_powers):
         assert type(var_powers) == list
         for var_power in var_powers:
@@ -59,6 +85,10 @@ class _Term:
         self.sig = sig
 
     def __add__(self, other):
+        """
+        We rely heavily on the Poly class to only invoke term
+        addtion when the terms have the same signature.
+        """
         assert type(other) == _Term
         assert len(self.var_powers) == len(other.var_powers)
         assert self.sig == other.sig
@@ -84,6 +114,11 @@ class _Term:
         return _Term(coeff, vps)
 
     def __rmul__(self, other):
+        """
+        if term == x**2, it is more natural for people to
+        write something like 5*(x**2) than (x**2)*5, so we
+        support the __rmul__ protocol.
+        """
         if type(other) == int:
             if other == 0:
                 return _Term.zero()
@@ -96,6 +131,9 @@ class _Term:
             assert False
 
     def __str__(self):
+        """
+        An example string is "60*x*(y**22)".
+        """
         c = self.coeff
         c_str = str(c) if c > 0 else f"({c})"
         if not self.var_powers:
@@ -142,13 +180,19 @@ class _Term:
             product *= vp.eval(vars[vp.var])
         return product
 
-    def factorize_on_var(self, excluded_var):
-        if excluded_var not in self.var_dict:
+    def factorize_on_var(self, substituted_var):
+        """
+        This method is used by Poly when you are trying to substitute
+        a variable with some polynomial expression.  The _Term here
+        basically splits out the non-substituted portion of the term,
+        and reports the power of the substituted variable.
+        """
+        if substituted_var not in self.var_dict:
             return (self, 0)
-        var_powers = [vp for vp in self.var_powers if vp.var != excluded_var]
-        coeff = self.coeff
-        power_of_excluded_var = self.var_dict[excluded_var]
-        return (_Term(coeff, var_powers), power_of_excluded_var)
+
+        var_powers = [vp for vp in self.var_powers if vp.var != substituted_var]
+        power_of_substituted_var = self.var_dict[substituted_var]
+        return (_Term(self.coeff, var_powers), power_of_substituted_var)
 
     def is_one(self):
         return self.coeff == 1 and len(self.var_powers) == 0
