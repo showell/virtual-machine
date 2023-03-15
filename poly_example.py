@@ -161,6 +161,8 @@ mod = lambda n: n % MODULUS
 q = p.transform_coefficients(mod)
 assert_str(q, "3*(x**3)+4*(y**5)+7*(z**7)+7")
 
+small_results = set()
+
 # Show that p and q behave the same across their respective domains.
 for x in range(MODULUS * 2):
     for y in range(MODULUS * 2):
@@ -185,3 +187,8 @@ for x in range(MODULUS * 2):
 
             # verify that mod(p(x,y,z)) == q(mod(x), mod(y), mod(z))
             assert_equal(mod(big_result), small_result)
+
+            small_results.add(small_result)
+
+# Make sure we found a bunch of interesting results.
+assert set(small_results) == set(range(MODULUS))
