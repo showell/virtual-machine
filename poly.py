@@ -713,8 +713,10 @@ class Poly:
         enforce_type(poly1, Poly)
         enforce_type(poly2, Poly)
 
-        if poly1.is_zero() or poly2.is_zero():
-            return Poly.zero()
+        if poly1.is_zero():
+            return poly1
+        if poly2.is_zero():
+            return poly2
         if poly1.is_one():
             return poly2
         if poly2.is_one():
