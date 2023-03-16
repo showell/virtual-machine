@@ -15,9 +15,6 @@ vpx = _VarPower("x", 3)
 assert str(vpx) == "(x**3)"
 assert vpx.eval(2) == 8
 
-assert str(vpx**1) == "(x**3)"
-assert str(vpx**4) == "(x**12)"
-
 ## _Term tests
 
 x = _Term.var("x")

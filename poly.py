@@ -67,30 +67,22 @@ class _VarPower:
         enforce_type(var, str)
         for c in ",*+/-()":
             assert not c in var
+        # We only handle positive powers of variables.
+        # Constant values are handled by _Term.
         enforce_type(exponent, int)
-        self.enforce_exponent(exponent)
+        if exponent <= 0:
+            raise ValueError("{exponent} is not positive")
+
         self.var = var
         self.exponent = exponent
-
-    def __pow__(self, exponent):
-        enforce_type(exponent, int)
-        self.enforce_exponent(exponent)
-        if exponent == 1:
-            return self
-        return _VarPower(self.var, self.exponent * exponent)
 
     def __str__(self):
         if self.exponent == Value.one:
             return self.var
         return f"({self.var}**{self.exponent})"
 
-    def enforce_exponent(self, exp):
-        # We only handle positive powers of variables.
-        # Constant values are handled by _Term.
-        if exp <= 0:
-            raise ValueError("{exponent} is not positive")
-
     def eval(self, x):
+        enforce_type(x, Value.value_type)
         return Value.power(x, self.exponent)
 
 
@@ -310,7 +302,7 @@ class _Term:
             return self
 
         coeff = Value.power(self.coeff, exponent)
-        vps = [vp**exponent for vp in self.var_powers]
+        vps = [_VarPower(vp.var, vp.exponent * exponent) for vp in self.var_powers]
         return _Term(coeff, vps)
 
     def transform_coefficient(self, f):
