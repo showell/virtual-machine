@@ -1,4 +1,5 @@
 import collections
+import integer
 
 """
 The Poly class works purely with integer poynomials.
@@ -15,98 +16,28 @@ convenience sake, it prevents you from having punctuation
 characters in variables that would conflict with operators
 like +, -, *, etc.
 
+I believe this project could be pretty easily modified to work
+with any commutative ring, but I have mostly tested with normal
+integers and a Modulus class.
+
+I try to set up the structure here to allow for future extensions.
+
+Note that even over a non-integer field of values, we would still
+have to enforce non-negative integer exponents to support
+the "substitution" operation on polynomials.  Think of exponentiation
+as just a shorthand for repeated multiplication, so for our purposes
+exponents will always be actual positive integers.  We also allow
+exponents of zero, but they essentially get simplified away in Poly.
+
 Useful references:
     * https://docs.python.org/3/library/operator.html
     * https://en.wikipedia.org/wiki/Polynomial
     * https://en.wikipedia.org/wiki/Modular_arithmetic
     * https://en.wikipedia.org/wiki/Commutative_ring
+
 """
 
-
-class Integer:
-    """
-    I believe this project could be pretty easily modified to work
-    with any commutative ring, but I have only tested with integers.
-
-    I try to set up the structure here to allow for future extensions.
-
-    Note that even over a non-integer field of values, we would still
-    have to enforce non-negative integer exponents to support
-    the "substitution" operation on polynomials.  Think of exponentiation
-    as just a shorthand for repeated multiplication, so for our purposes
-    exponents will always be actual non-negative integers.
-    """
-
-    zero = 0
-    one = 1
-    value_type = int
-
-    @staticmethod
-    def add(a, b):
-        assert type(a) == int
-        assert type(b) == int
-        return a + b
-
-    @staticmethod
-    def mul(a, b):
-        assert type(a) == int
-        assert type(b) == int
-        return a * b
-
-    @staticmethod
-    def negate(n):
-        assert type(n) == int
-        return -n
-
-    @staticmethod
-    def power(n, exp):
-        assert type(n) == int
-        assert type(exp) == int
-        return n**exp
-
-
-class Modulus:
-    def __init__(self, modulus):
-        assert modulus > 0
-        assert type(modulus) == int
-        self.zero = 0
-        self.one = 1
-        self.value_type = int
-        self.modulus = modulus
-
-    def add(self, a, b):
-        self.check(a)
-        self.check(b)
-        return (a + b) % self.modulus
-
-    def check(self, x):
-        assert type(x) == int
-        assert 0 <= x
-        assert x < self.modulus
-
-    def mul(self, a, b):
-        self.check(a)
-        self.check(b)
-        return (a * b) % self.modulus
-
-    def negate(self, n):
-        self.check(n)
-        return self.modulus - n
-
-    def power(self, n, exponent):
-        self.check(n)
-        assert type(exponent) == int
-        assert exponent >= 0
-
-        def repeated_multiply(exp):
-            if exp == 0:
-                return 1
-            return self.mul(n, repeated_multiply(exp - 1))
-
-        return repeated_multiply(exponent)
-
-
-Value = Integer
+Value = integer.Integer
 
 
 def set_value_handler(handler):

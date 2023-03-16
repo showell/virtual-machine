@@ -1,6 +1,8 @@
 # Show that modular arithmetic over polynomials behaves correctly.
 # This is slightly hacky for now.
-from poly import Integer, Modulus, Poly, set_value_handler
+from poly import Poly, set_value_handler
+from integer import Integer
+from modulus import Modulus
 
 
 def assert_str(p, s):
