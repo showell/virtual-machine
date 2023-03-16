@@ -29,7 +29,9 @@ class Integer:
 
     Note that even over a non-integer field of values, we would still
     have to enforce non-negative integer exponents to support
-    the "substitution" operation on polynomials.
+    the "substitution" operation on polynomials.  Think of exponentiation
+    as just a shorthand for repeated multiplication, so for our purposes
+    exponents will always be actual non-negative integers.
     """
 
     zero = 0
@@ -49,15 +51,15 @@ class Integer:
         return a * b
 
     @staticmethod
+    def negate(n):
+        assert type(n) == int
+        return -n
+
+    @staticmethod
     def power(n, exp):
         assert type(n) == int
         assert type(exp) == int
         return n**exp
-
-    @staticmethod
-    def negate(n):
-        assert type(n) == int
-        return -n
 
 
 class Modulus:
