@@ -249,7 +249,7 @@ class _Term:
 
         for var in self.variables():
             if var not in var_assignments:
-                raise ValueError("You are not providing all the needed variables.")
+                raise ValueError(f"You are not providing an assignment for {var}.")
 
         product = Value.one
         for vp in self.var_powers:
