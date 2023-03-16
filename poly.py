@@ -460,7 +460,7 @@ class Poly:
         return self.multiply_with(other)
 
     def __rsub__(self, other):
-        if type(other) == int:
+        if type(other) == Value.value_type:
             other = Poly.constant(other)
         enforce_type(other, Poly)
         return -self + other
@@ -472,7 +472,7 @@ class Poly:
 
     def __sub__(self, other):
         if type(other) == Value.value_type:
-            return self + Poly.constant(-other)
+            return self + Poly.constant(Value.negate(other))
         return self + (-other)
 
     def add_with(self, other):
