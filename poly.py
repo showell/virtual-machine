@@ -4,11 +4,21 @@ import integer
 """
 The Poly class allows you to create polynomial expressions
 where each term includes a coefficient (which is integer
-by default) and then some subset of variables each raised
+by default) and then some collection of variables each raised
 to an integer power.
 
 The key feature of this class is that it allows you to
 symbolically manipulate polynomials.
+
+    # Poly supports symbolic manipulation.
+    assert_str((x + 1) * (x - 1), "(x**2)+(-1)")
+    assert_str((x + 2) * (x + 3), "(x**2)+5*x+6")
+    assert_str((x + 2) ** 3, "(x**3)+6*(x**2)+12*x+8")
+    assert_str((3 * x + 1) ** 4, "81*(x**4)+108*(x**3)+54*(x**2)+12*x+1")
+
+    # You can use multiple variables.
+    assert_str(x + y + z - y, "x+z")
+    assert_str((x + y) * (z + y), "x*y+x*z+(y**2)+y*z")
 
 You can add/multiply instances of Poly with either (a) other
 Poly objects or (b) constant values (again, integer by default).
@@ -33,7 +43,8 @@ I believe this project could be pretty easily modified to work
 with any commutative ring, but I have mostly tested with normal
 integers and a Modulus class.
 
-I try to set up the structure here to allow for future extensions.
+I tried to set up the structure here to allow for future extensions,
+and the function set_value_handler is the main hook for that.
 
 ABOUT EXPONENTS (important):
 
@@ -106,13 +117,13 @@ class _VarPower:
         if exponent <= 0:
             raise ValueError("{exponent} is not positive")
 
-        self.var = var_name
+        self.var_name = var_name
         self.exponent = exponent
 
     def __str__(self):
         if self.exponent == Value.one:
-            return self.var
-        return f"({self.var}**{self.exponent})"
+            return self.var_name
+        return f"({self.var_name}**{self.exponent})"
 
     def compute_power(self, x):
         enforce_type(x, Value.value_type)
@@ -142,7 +153,7 @@ class _Term:
         for var_power in var_powers:
             enforce_type(var_power, _VarPower)
         enforce_type(coeff, Value.value_type)
-        vars = [vp.var for vp in var_powers]
+        vars = [vp.var_name for vp in var_powers]
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
 
@@ -150,7 +161,7 @@ class _Term:
         self.coeff = coeff
 
         self.sig = "*".join(str(vp) for vp in var_powers)
-        self.var_dict = {vp.var: vp.exponent for vp in var_powers}
+        self.var_dict = {vp.var_name: vp.exponent for vp in var_powers}
 
     def __add__(self, other):
         return self.add_to_similar_term(other)
@@ -217,8 +228,8 @@ class _Term:
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
-            if vp.var in var_assignments:
-                value = var_assignments[vp.var]
+            if vp.var_name in var_assignments:
+                value = var_assignments[vp.var_name]
                 new_coeff = Value.mul(new_coeff, vp.compute_power(value))
             else:
                 new_vps.append(vp)
@@ -263,7 +274,7 @@ class _Term:
 
         product = Value.one
         for vp in self.var_powers:
-            product = Value.mul(product, vp.compute_power(var_assignments[vp.var]))
+            product = Value.mul(product, vp.compute_power(var_assignments[vp.var_name]))
         return Value.mul(self.coeff, product)
 
     def factorize_on_var(self, substituted_var):
@@ -276,7 +287,7 @@ class _Term:
         if substituted_var not in self.var_dict:
             return (self, Value.zero)
 
-        var_powers = [vp for vp in self.var_powers if vp.var != substituted_var]
+        var_powers = [vp for vp in self.var_powers if vp.var_name != substituted_var]
         power_of_substituted_var = self.var_dict[substituted_var]
         return (_Term(self.coeff, var_powers), power_of_substituted_var)
 
@@ -316,9 +327,9 @@ class _Term:
         coeff = Value.mul(self.coeff, other.coeff)
         exponents = collections.defaultdict(int)
         for vp in self.var_powers:
-            exponents[vp.var] = vp.exponent
+            exponents[vp.var_name] = vp.exponent
         for vp in other.var_powers:
-            exponents[vp.var] += vp.exponent
+            exponents[vp.var_name] += vp.exponent
         parms = list(exponents.items())
         parms.sort()
         vps = [_VarPower(var, exponent) for var, exponent in parms]
@@ -359,7 +370,7 @@ class _Term:
             return self
 
         coeff = Value.power(self.coeff, exponent)
-        vps = [_VarPower(vp.var, vp.exponent * exponent) for vp in self.var_powers]
+        vps = [_VarPower(vp.var_name, vp.exponent * exponent) for vp in self.var_powers]
         return _Term(coeff, vps)
 
     def sort_key(self, var_list):
