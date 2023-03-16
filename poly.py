@@ -174,12 +174,6 @@ class _Term:
         self.sig = "*".join(str(vp) for vp in var_powers)
         self.var_dict = {vp.var_name: vp.exponent for vp in var_powers}
 
-    def __pow__(self, exponent):
-        return self.raised_to_exponent(exponent)
-
-    def __str__(self):
-        return self.canonicalized_string()
-
     def apply(self, **var_assignments):
         """
         This substitutes variables in our term with actual
