@@ -9,11 +9,11 @@ For more polished examples see poly_example.py
 
 vpn = _VarPower("n", 5)
 assert str(vpn) == "(n**5)"
-assert vpn.eval(2) == 32
+assert vpn.compute_power(2) == 32
 
 vpx = _VarPower("x", 3)
 assert str(vpx) == "(x**3)"
-assert vpx.eval(2) == 8
+assert vpx.compute_power(2) == 8
 
 ## _Term tests
 

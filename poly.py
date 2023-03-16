@@ -81,7 +81,7 @@ class _VarPower:
             return self.var
         return f"({self.var}**{self.exponent})"
 
-    def eval(self, x):
+    def compute_power(self, x):
         enforce_type(x, Value.value_type)
         return Value.power(x, self.exponent)
 
@@ -169,7 +169,7 @@ class _Term:
         """
         raise NotImplementedError
 
-    def apply(self, **vars):
+    def apply(self, **var_assignments):
         """
         This substitutes variables in our term with actual
         integers, producing a simpler Term.
@@ -180,24 +180,24 @@ class _Term:
         If none of the vars are in our term, then we just
         return ourself.  See Poly.apply for more context.
         """
-        for var, value in vars.items():
+        for var, value in var_assignments.items():
             enforce_type(var, str)
             enforce_type(value, Value.value_type)
 
-        if not set(vars) & set(self.var_dict):
+        if not set(var_assignments) & set(self.var_dict):
             return self
 
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
-            if vp.var in vars:
-                value = vars[vp.var]
-                new_coeff = Value.mul(new_coeff, vp.eval(value))
+            if vp.var in var_assignments:
+                value = var_assignments[vp.var]
+                new_coeff = Value.mul(new_coeff, vp.compute_power(value))
             else:
                 new_vps.append(vp)
         return _Term(new_coeff, new_vps)
 
-    def eval(self, **vars):
+    def eval(self, **var_assignments):
         """
         This function returns the actual numerical value of
         our term given values for all its variables.
@@ -207,16 +207,17 @@ class _Term:
         to check each of its terms to see which variables
         are used.)
         """
-        for var, value in vars.items():
+        for var, value in var_assignments.items():
             enforce_type(var, str)
             enforce_type(value, Value.value_type)
 
-        if not self.variables().issubset(vars):
-            raise ValueError("You are not providing all the needed variables.")
+        for var in self.variables():
+            if var not in var_assignments:
+                raise ValueError("You are not providing all the needed variables.")
 
         product = Value.one
         for vp in self.var_powers:
-            product = Value.mul(product, vp.eval(vars[vp.var]))
+            product = Value.mul(product, vp.compute_power(var_assignments[vp.var]))
         return Value.mul(self.coeff, product)
 
     def factorize_on_var(self, substituted_var):
@@ -486,33 +487,37 @@ class Poly:
         """
         return Poly(self.terms + other.terms)
 
-    def apply(self, **vars):
+    def apply(self, **var_assignments):
         """
         This does a partial application of a subset of variables to
         our polynomial. I perhaps could have called this "partial",
         but I wanted to avoid confusion with possible future extensions
         related to partial derivates.
         """
-        for var, value in vars.items():
+        for var, value in var_assignments.items():
             if type(value) is Poly:
                 raise ValueError("Use Poly.substitute instead")
             enforce_type(value, Value.value_type)
         my_vars = self.variables()
-        if not set(vars).issubset(my_vars):
+        if not set(var_assignments).issubset(my_vars):
             raise AssertionError("You are providing unknown variables.")
-        return Poly([term.apply(**vars) for term in self.terms])
+        return Poly([term.apply(**var_assignments) for term in self.terms])
 
-    def eval(self, **vars):
+    def eval(self, **var_assignments):
+        """
+        This method converts a Poly to a Value (e.g. integer) by
+        using the supplied variable assignments.
+        """
         my_vars = self.variables()
-        if len(set(vars)) < len(my_vars):
+        if len(set(var_assignments)) < len(my_vars):
             raise ValueError("Not enough variables supplied. Maybe use apply?")
 
-        for var, value in vars.items():
+        for var, value in var_assignments.items():
             enforce_type(value, Value.value_type)
 
         result = Value.zero
         for term in self.terms:
-            result = Value.add(result, term.eval(**vars))
+            result = Value.add(result, term.eval(**var_assignments))
         return result
 
     def multiply_with(self, other):
