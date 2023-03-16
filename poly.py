@@ -146,11 +146,11 @@ class _Term:
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
 
-        sig = "*".join(str(vp) for vp in var_powers)
         self.var_powers = var_powers
         self.coeff = coeff
+
+        self.sig = "*".join(str(vp) for vp in var_powers)
         self.var_dict = {vp.var: vp.exponent for vp in var_powers}
-        self.sig = sig
 
     def __add__(self, other):
         """
