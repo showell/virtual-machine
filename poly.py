@@ -687,20 +687,17 @@ class Poly:
 
         self.terms = new_terms
 
-    def substitute(self, var, poly):
-        enforce_type(var, str)
-        enforce_type(poly, Poly)
-        if var not in self.variables():
+    def substitute(self, var_name, var_poly):
+        enforce_type(var_name, str)
+        enforce_type(var_poly, Poly)
+        if var_name not in self.variables():
             raise ValueError("Unknown variable")
 
-        new_polys = []
-        for term in self.terms:
-            smaller_term, power = term.factorize_on_var(var)
-            if power == Value.zero:
-                new_poly = Poly([smaller_term])
-            else:
-                new_poly = Poly([smaller_term]) * (poly**power)
-            new_polys.append(new_poly)
+        new_polys = [
+            Poly.poly_based_on_term_with_variable_substitution(term, var_name, var_poly)
+            for term in self.terms
+        ]
+
         return Poly.sum(new_polys)
 
     def transform_coefficients(self, f):
@@ -722,6 +719,19 @@ class Poly:
     @staticmethod
     def one():
         return Poly.constant(Value.one)
+
+    @staticmethod
+    def poly_based_on_term_with_variable_substitution(term, var_name, var_poly):
+        enforce_type(term, _Term)
+        enforce_type(var_name, str)
+        enforce_type(var_poly, Poly)
+
+        smaller_term, exponent = term.factorize_on_var(var_name)
+        small_poly = Poly([smaller_term])
+        if exponent == 0:
+            return small_poly
+        else:
+            return small_poly.multiply_by_poly(var_poly.raised_to_exponent(exponent))
 
     @staticmethod
     def subtract_polys(poly1, poly2):
