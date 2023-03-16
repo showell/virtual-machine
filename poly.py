@@ -85,16 +85,24 @@ def set_value_handler(handler):
     Value = handler
 
 
-def enforce_type(var, _type):
-    if type(var) != _type:
-        raise TypeError(f"{var} is not type {_type}")
-
 
 def enforce_legal_variable_name(var_name):
     for c in ",*+/-()":
         if c in var_name:
             raise ValueError(f"Do not use variable names that include {c}.")
 
+def enforce_sorted_distinct_list(lst):
+    enforce_type(lst, list)
+
+    if lst != sorted(lst):
+        raise ValueError(f"{lst} is not sorted")
+
+    if len(lst) != len(set(lst)):
+        raise ValueError(f"{lst} has duplicate items")
+
+def enforce_type(var, _type):
+    if type(var) != _type:
+        raise TypeError(f"{var} is not type {_type}")
 
 class _VarPower:
     """
@@ -155,8 +163,7 @@ class _Term:
         enforce_type(coeff, Value.value_type)
 
         var_names = [vp.var_name for vp in var_powers]
-        assert var_names == sorted(var_names)
-        assert len(var_names) == len(set(var_names))
+        enforce_sorted_distinct_list(var_names)
 
         self.var_powers = var_powers
         self.coeff = coeff
