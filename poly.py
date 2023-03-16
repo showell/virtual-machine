@@ -114,6 +114,11 @@ def set_value_handler(handler):
     Value = handler
 
 
+def enforce_type(var, _type):
+    if type(var) != _type:
+        raise TypeError(f"{var} is not type {_type}")
+
+
 class _VarPower:
     """
     This helper class represents a simple power of a variable
@@ -127,17 +132,17 @@ class _VarPower:
     """
 
     def __init__(self, var, power):
-        assert type(var) == str
+        enforce_type(var, str)
         for c in ",*+/-()":
             assert not c in var
-        assert type(power) == int
-        assert power >= 0
+        enforce_type(power, int)
+        self.enforce_exponent(power)
         self.var = var
         self.power = power
 
     def __pow__(self, exponent):
-        assert type(exponent) == int
-        assert exponent >= 1
+        enforce_type(exponent, int)
+        self.enforce_exponent(exponent)
         if exponent == 1:
             return self
         return _VarPower(self.var, self.power * exponent)
@@ -146,6 +151,12 @@ class _VarPower:
         if self.power == Value.one:
             return self.var
         return f"({self.var}**{self.power})"
+
+    def enforce_exponent(self, exp):
+        # We only handle positive powers of variables.
+        # Constant values are handled by _Term.
+        if exp <= 0:
+            raise ValueError("{exponent} is not positive")
 
     def eval(self, x):
         return Value.power(x, self.power)
@@ -170,10 +181,10 @@ class _Term:
     """
 
     def __init__(self, coeff, var_powers):
-        assert type(var_powers) == list
+        enforce_type(var_powers, list)
         for var_power in var_powers:
-            assert (type(var_power)) == _VarPower
-        assert type(coeff) == Value.value_type
+            enforce_type(var_power, _VarPower)
+        enforce_type(coeff, Value.value_type)
         vars = [vp.var for vp in var_powers]
         assert vars == sorted(vars)
         assert len(vars) == len(set(vars))
@@ -187,11 +198,12 @@ class _Term:
     def __add__(self, other):
         """
         We rely heavily on the Poly class to only invoke term
-        addtion when the terms have the same signature.
+        addition when the terms have the same signature.
         """
-        assert type(other) == _Term
+        enforce_type(other, _Term)
+        if self.sig != other.sig:
+            raise AssertionError("Do not combine unlike terms!!!!")
         assert len(self.var_powers) == len(other.var_powers)
-        assert self.sig == other.sig
         return _Term(Value.add(self.coeff, other.coeff), self.var_powers)
 
     def __mul__(self, other):
@@ -201,8 +213,10 @@ class _Term:
         return _Term(Value.negate(self.coeff), self.var_powers)
 
     def __pow__(self, exponent):
-        assert type(exponent) == int
-        assert exponent >= 0
+        enforce_type(exponent, int)
+        if exponent < 0:
+            raise ValueError("We do not support negative exponentiation yet.")
+
         if exponent == 0:
             return _Term.one()
 
@@ -223,12 +237,12 @@ class _Term:
             if other == Value.zero:
                 return _Term.zero()
             if other == Value.one:
-                assert self
+                return self
             return _Term(Value.mul(self.coeff, other), self.var_powers)
         elif type(other) == _Term:
             return self.multiply_terms(other)
         else:
-            assert False
+            raise TypeError("We don't support this type of multiplication.")
 
     def __str__(self):
         """
@@ -261,8 +275,8 @@ class _Term:
         return ourself.  See Poly.apply for more context.
         """
         for var, value in vars.items():
-            assert type(var) == str
-            assert type(value) == Value.value_type
+            enforce_type(var, str)
+            enforce_type(value, Value.value_type)
         if not set(vars) & set(self.var_dict):
             return self
         new_coeff = self.coeff
@@ -286,9 +300,12 @@ class _Term:
         are used.)
         """
         for var, value in vars.items():
-            assert type(var) == str
-            assert type(value) == Value.value_type
-        assert self.variables().issubset(vars)
+            enforce_type(var, str)
+            enforce_type(value, Value.value_type)
+
+        if not self.variables().issubset(vars):
+            raise ValueError("You are providing unknown variables.")
+
         product = Value.one
         for vp in self.var_powers:
             product = Value.mul(product, vp.eval(vars[vp.var]))
@@ -351,7 +368,7 @@ class _Term:
 
     @staticmethod
     def constant(c):
-        assert type(c) == Value.value_type
+        enforce_type(c, Value.value_type)
         return _Term(c, [])
 
     @staticmethod
@@ -370,7 +387,9 @@ class _Term:
         one term in the sum, since there is no need to create
         new objects in that case, as _Term objects are immutable.
         """
-        assert len(terms) >= 1
+        if len(terms) < 1:
+            raise ValueError("We expect at least one term to be summed.")
+
         if len(terms) == 1:
             return terms[0]
 
@@ -379,8 +398,9 @@ class _Term:
         coeff = term.coeff
         var_powers = term.var_powers
         for other in terms[1:]:
-            assert type(other) == _Term
-            assert other.sig == sig
+            enforce_type(other, _Term)
+            if other.sig != sig:
+                raise AssertionError("We cannot combine unlike terms!!!")
             coeff = Value.add(coeff, other.coeff)
 
         return _Term(coeff, var_powers)
@@ -394,7 +414,7 @@ class _Term:
 
     @staticmethod
     def var(var):
-        assert type(var) == str
+        enforce_type(var, str)
         return _Term(Value.one, [_VarPower(var, Value.one)])
 
     @staticmethod
@@ -408,9 +428,9 @@ class Poly:
             raise ValueError(
                 "Pass in a list of _Terms or use Poly's other constructors."
             )
-        assert type(terms) == list
+        enforce_type(terms, list)
         for term in terms:
-            assert type(term) == _Term
+            enforce_type(term, _Term)
         self.terms = terms
         self.simplify()
         self.put_terms_in_order()
@@ -440,7 +460,7 @@ class Poly:
         x+3 and y+3 are structurally equivalent, we consider them
         to be non-equal.
         """
-        assert type(other) == Poly
+        enforce_type(other, Poly)
         return str(self) == str(other)
 
     def __mul__(self, other):
@@ -450,8 +470,10 @@ class Poly:
         return Poly([-term for term in self.terms])
 
     def __pow__(self, exponent):
-        assert type(exponent) == int
-        assert exponent >= 0
+        enforce_type(exponent, int)
+        if exponent < 0:
+            raise ValueError("we do not support negative exponents")
+
         if exponent == 0:
             return Poly.one()
         if exponent == 1:
@@ -463,7 +485,7 @@ class Poly:
             if other == Value.zero:
                 return self
             other = Poly.constant(other)
-        assert type(other) == Poly
+        enforce_type(other, Poly)
         return Poly(self.terms + other.terms)
 
     def __rmul__(self, other):
@@ -471,14 +493,14 @@ class Poly:
             return Poly([term * other for term in self.terms])
         elif type(other) == _Term:
             raise ValueError("Use Poly contructors to build up terms.")
-        assert type(other) == Poly
+        enforce_type(other, Poly)
         terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
         return Poly(terms)
 
     def __rsub__(self, other):
         if type(other) == int:
             other = Poly.constant(other)
-        assert type(other) == Poly
+        enforce_type(other, Poly)
         return -self + other
 
     def __str__(self):
@@ -501,10 +523,10 @@ class Poly:
         for var, value in vars.items():
             if type(value) is Poly:
                 raise ValueError("Use Poly.substitute instead")
-            elif type(value) != Value.value_type:
-                raise ValueError("Improper type supplied")
+            enforce_type(value, Value.value_type)
         my_vars = self.variables()
-        assert set(vars).issubset(my_vars)
+        if not set(vars).issubset(my_vars):
+            raise AssertionError("You are providing unknown variables.")
         return Poly([term.apply(**vars) for term in self.terms])
 
     def eval(self, **vars):
@@ -513,11 +535,7 @@ class Poly:
             raise ValueError("Not enough variables supplied. Maybe use apply?")
 
         for var, value in vars.items():
-            if type(value) not in (int, float):
-                raise ValueError(
-                    f"The value {value} for var {var} is neither int nor float."
-                )
-            assert type(value) == Value.value_type
+            enforce_type(value, Value.value_type)
 
         result = Value.zero
         for term in self.terms:
@@ -552,9 +570,11 @@ class Poly:
         self.terms = new_terms
 
     def substitute(self, var, poly):
-        assert type(var) == str
-        assert type(poly) == Poly
-        assert var in self.variables()
+        enforce_type(var, str)
+        enforce_type(poly, Poly)
+        if var not in self.variables():
+            raise ValueError("Unknown variable")
+
         new_polys = []
         for term in self.terms:
             smaller_term, power = term.factorize_on_var(var)
@@ -577,7 +597,7 @@ class Poly:
 
     @staticmethod
     def constant(c):
-        assert type(c) == Value.value_type
+        enforce_type(c, Value.value_type)
         return Poly([_Term.constant(c)])
 
     @staticmethod
@@ -591,8 +611,9 @@ class Poly:
         but this should be faster, since it avoids creating a bunch
         of intermediate partial polynomial sums for large lists.
         """
+        enforce_type(poly_list, list)
         for poly in poly_list:
-            assert type(poly) == Poly
+            enforce_type(poly, Poly)
 
         if len(poly_list) == 0:
             return Poly.zero()
@@ -615,7 +636,7 @@ class Poly:
         variables are just implicitly used inside of _VarPower,
         _Term, and Poly.
         """
-        assert type(label) == str
+        enforce_type(label, str)
         coeff = Value.one
         power = Value.one
         var_power = _VarPower(label, power)
