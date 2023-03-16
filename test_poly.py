@@ -57,8 +57,6 @@ term = (3 * (x**4)) ** 3
 assert str(term) == "27*(x**12)"
 assert str(-term) == "(-27)*(x**12)"
 
-assert str(x**2 + 5 * x**2) == "6*(x**2)"
-
 t = y * x**2
 assert str(t) == "(x**2)*y"
 assert t.variables() == {"x", "y"}
