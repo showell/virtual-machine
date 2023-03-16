@@ -621,6 +621,7 @@ class Poly:
         return Poly.sum(new_polys)
 
     def transform_coefficients(self, f):
+        assert callable(f)
         terms = [t.transform_coefficient(f) for t in self.terms]
         return Poly(terms)
 
@@ -656,7 +657,9 @@ class Poly:
         if len(poly_list) == 1:
             return poly_list[0]
 
-        terms = sum((p.terms for p in poly_list), start=[])
+        terms = []
+        for p in poly_list:
+            terms.extend(p.terms)
         return Poly(terms)
 
     @staticmethod
@@ -673,8 +676,8 @@ class Poly:
         """
         enforce_type(label, str)
         coeff = Value.one
-        power = Value.one
-        var_power = _VarPower(label, power)
+        exponent = 1  # exponents are ALWAYS integers
+        var_power = _VarPower(label, exponent)
         term = _Term(coeff, [var_power])
         return Poly([term])
 
