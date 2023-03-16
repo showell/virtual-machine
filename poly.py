@@ -518,7 +518,7 @@ class Poly:
             return self.add_with_constant(other)
         else:
             enforce_type(other, Poly)
-            return self.add_with_poly(other)
+            return Poly.add_polys(self, other)
 
     def add_with_constant(self, c):
         if c == Value.zero:
@@ -528,15 +528,7 @@ class Poly:
         For convenience, just immediately make a Poly
         from the value and continue with Poly+Poly addition.
         """
-        return self.add_with_poly(Poly.constant(c))
-
-    def add_with_poly(self, other_poly):
-        """
-        All the heavy lifting happens when we construct the
-        new Poly--see __init__ for more context.
-        """
-        enforce_type(other_poly, Poly)
-        return Poly(self.terms + other_poly.terms)
+        return Poly.add_polys(self, Poly.constant(c))
 
     def apply(self, **var_assignments):
         """
@@ -693,6 +685,16 @@ class Poly:
         for term in self.terms:
             vars |= term.variables()
         return vars
+
+    @staticmethod
+    def add_polys(poly1, poly2):
+        """
+        All the heavy lifting happens when we construct the
+        new Poly--see __init__ for more context.
+        """
+        enforce_type(poly1, Poly)
+        enforce_type(poly2, Poly)
+        return Poly(poly1.terms + poly2.terms)
 
     @staticmethod
     def constant(c):
