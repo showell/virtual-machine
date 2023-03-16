@@ -112,6 +112,8 @@ assert (p * 1) == p
 assert (1 * p) == p
 assert (p + 0) == p
 assert (0 + p) == p
+assert (p - 0) == p
+assert (0 - p) == p.negated() == -p
 assert Poly.add_polys(p, zero) == p
 assert Poly.add_polys(zero, p) == p
 assert Poly.multiply_polys(zero, p) == zero

@@ -750,6 +750,8 @@ class Poly:
     def subtract_polys(poly1, poly2):
         enforce_type(poly1, Poly)
         enforce_type(poly2, Poly)
+        if poly2.is_zero():
+            return poly1
         return poly1 + (-poly2)
 
     @staticmethod
