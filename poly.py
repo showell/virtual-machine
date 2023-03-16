@@ -530,22 +530,28 @@ class Poly:
         we are adding Value.zero).
         """
         if type(other) == Value.value_type:
-            if other == Value.zero:
-                # take advantage of immutability
-                return self
-            """
-            For convenience, just immediately make a Poly
-            from the value and continue with Poly+Poly addition.
-            """
-            other = Poly.constant(other)
+            return self.add_with_constant(other)
+        else:
+            enforce_type(other, Poly)
+            return self.add_with_poly(other)
 
-        enforce_type(other, Poly)
+    def add_with_constant(self, c):
+        if c == Value.zero:
+            # take advantage of immutability
+            return self
+        """
+        For convenience, just immediately make a Poly
+        from the value and continue with Poly+Poly addition.
+        """
+        return self.add_with_poly(Poly.constant(c))
 
+    def add_with_poly(self, other_poly):
         """
         All the heavy lifting happens when we construct the
         new Poly--see __init__ for more context.
         """
-        return Poly(self.terms + other.terms)
+        enforce_type(other_poly, Poly)
+        return Poly(self.terms + other_poly.terms)
 
     def apply(self, **var_assignments):
         """
