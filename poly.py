@@ -380,7 +380,7 @@ class _Term:
         This is a helper for Poly.
         Poly will only call us with terms that have the same sig.
 
-        We essentially just adds up coefficients.
+        We essentially just add up coefficients.
 
         We also special-case the situation where there is only
         one term in the sum, since there is no need to create
