@@ -176,16 +176,7 @@ class _Term:
         return self.multiply_with(other)
 
     def __str__(self):
-        """
-        An example string is "60*x*(y**22)".
-        """
-        c = self.coeff
-        c_str = str(c) if c > 0 else f"({c})"
-        if not self.var_powers:
-            return c_str
-        if self.coeff == Value.one:
-            return self.sig
-        return c_str + "*" + self.sig
+        return self.canonicalized_string()
 
     def __sub__(self, other):
         """
@@ -233,6 +224,25 @@ class _Term:
                 new_vps.append(vp)
         return _Term(new_coeff, new_vps)
 
+    def canonicalized_string(self):
+        """
+        An example string is "60*x*(y**22)".
+        """
+        coeff_str = self.coeff_str()
+
+        if self.is_constant():
+            return coeff_str
+        if self.coeff == Value.one:
+            return self.sig
+        return coeff_str + "*" + self.sig
+
+    def coeff_str(self):
+        """
+        Put our constants in parentheses if they are negative.
+        """
+        c = self.coeff
+        return str(c) if c > 0 else f"({c})"
+
     def eval(self, **var_assignments):
         """
         This function returns the actual numerical value of
@@ -269,6 +279,12 @@ class _Term:
         var_powers = [vp for vp in self.var_powers if vp.var != substituted_var]
         power_of_substituted_var = self.var_dict[substituted_var]
         return (_Term(self.coeff, var_powers), power_of_substituted_var)
+
+    def is_constant(self):
+        """
+        Return True iff we are just a constant (i.e. no variable powers)
+        """
+        return len(self.var_powers) == 0
 
     def is_one(self):
         return self.coeff == Value.one and len(self.var_powers) == 0
@@ -554,7 +570,7 @@ class Poly:
         """
         if len(self.terms) == 0:
             return str(Value.zero)
-        return "+".join(str(term) for term in self.terms)
+        return "+".join(term.canonicalized_string() for term in self.terms)
 
     def eval(self, **var_assignments):
         """
