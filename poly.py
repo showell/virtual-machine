@@ -434,7 +434,7 @@ class Poly:
         return str(self) == str(other)
 
     def __mul__(self, other):
-        return self.__rmul__(other)
+        return self.multiply_with(other)
 
     def __neg__(self):
         return Poly([-term for term in self.terms])
@@ -457,13 +457,7 @@ class Poly:
         return self.add_with(other)
 
     def __rmul__(self, other):
-        if type(other) == int:
-            return Poly([term * other for term in self.terms])
-        elif type(other) == _Term:
-            raise ValueError("Use Poly contructors to build up terms.")
-        enforce_type(other, Poly)
-        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
-        return Poly(terms)
+        return self.multiply_with(other)
 
     def __rsub__(self, other):
         if type(other) == int:
@@ -533,6 +527,18 @@ class Poly:
         for term in self.terms:
             result = Value.add(result, term.eval(**vars))
         return result
+
+    def multiply_with(self, other):
+        """
+        We mostly rely on Poly.__init__ to do the heavy lifting here.
+        """
+        if type(other) == int:
+            return Poly([term * other for term in self.terms])
+        elif type(other) == _Term:
+            raise ValueError("Use Poly contructors to build up terms.")
+        enforce_type(other, Poly)
+        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
+        return Poly(terms)
 
     def put_terms_in_order(self):
         if len(self.terms) <= 1:
