@@ -252,7 +252,7 @@ class _Term:
         and reports the power of the substituted variable.
         """
         if substituted_var not in self.var_dict:
-            return (self, Math.zero)
+            return (self, 0)
 
         var_powers = [vp for vp in self.var_powers if vp.var_name != substituted_var]
         power_of_substituted_var = self.var_dict[substituted_var]
@@ -321,7 +321,7 @@ class _Term:
         This is used by Poly to sort terms in the normal high
         school algebra format.
         """
-        return tuple(self.var_dict.get(var, Math.zero) for var in var_list)
+        return tuple(self.var_dict.get(var, 0) for var in var_list)
 
     def transform_coefficient(self, f):
         assert callable(f)
