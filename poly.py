@@ -157,10 +157,11 @@ class _Term:
     """
 
     def __init__(self, coeff, var_powers):
+        enforce_type(coeff, Value.value_type)
+
         enforce_type(var_powers, list)
         for var_power in var_powers:
             enforce_type(var_power, _VarPower)
-        enforce_type(coeff, Value.value_type)
 
         var_names = [vp.var_name for vp in var_powers]
         enforce_sorted_distinct_list(var_names)
