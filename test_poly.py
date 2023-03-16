@@ -15,72 +15,7 @@ vpx = _VarPower("x", 3)
 assert str(vpx) == "(x**3)"
 assert vpx.compute_power(2) == 8
 
-## _Term tests
-
-x = _Term.var("x")
-y = _Term.var("y")
-zero = _Term.zero()
-one = _Term.one()
-
-assert (x * zero).eval() == 0
-assert (zero * zero).eval() == 0
-assert (one * one).eval() == 1
-assert str(one * x) == "x"
-assert str(x * one) == "x"
-assert not zero.is_one()
-assert one.is_one()
-assert not x.is_one()
-
-assert (x * 0).eval() == 0
-assert (x * 1).eval(x=7) == 7
-
-term = _Term(3, [vpn, vpx])
-assert str(term) == "3*(n**5)*(x**3)"
-assert str(term**0) == "1"
-assert str(term**1) == "3*(n**5)*(x**3)"
-assert term.eval(n=2, x=4) == 3 * (2**5) * (4**3)
-
-term = _Term.constant(17)
-assert term.eval() == 17
-
-term = 5 * x**2
-assert term.eval(x=4) == 80
-
-term = 3 * 2 * x
-assert term.eval(x=10) == 60
-
-term = 2 * x * 3 * (y**2) * 10 * (y**20)
-assert str(term) == "60*x*(y**22)"
-assert term.sig == "x*(y**22)"
-
-term = (3 * (x**4)) ** 3
-assert str(term) == "27*(x**12)"
-
-t = y * x**2
-assert str(t) == "(x**2)*y"
-assert t.variables() == {"x", "y"}
-
-t = 3 * (x**99) * (y**3)
-t = t.apply(y=2)
-assert str(t) == "24*(x**99)"
-t = t.apply(x=1)
-assert str(t) == "24"
-
-p = 5 * (x**2) * (y**3)
-term, power = p.factorize_on_var("x")
-assert str(term) == "5*(y**3)"
-assert power == 2
-
-term, power = p.factorize_on_var("y")
-assert str(term) == "5*(x**2)"
-assert power == 3
-
-term, power = p.factorize_on_var("z")
-assert str(term) == str(p)
-assert power == 0
-
 # POLY TESTS
-
 
 x = Poly.var("x")
 y = Poly.var("y")

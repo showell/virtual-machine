@@ -174,22 +174,8 @@ class _Term:
         self.sig = "*".join(str(vp) for vp in var_powers)
         self.var_dict = {vp.var_name: vp.exponent for vp in var_powers}
 
-    def __mul__(self, other):
-        """
-        IMPORTANT: We assume commutative multiplication.
-        """
-        return self.multiply_with(other)
-
     def __pow__(self, exponent):
         return self.raised_to_exponent(exponent)
-
-    def __rmul__(self, other):
-        """
-        if term == x**2, it is more natural for people to
-        write something like 5*(x**2) than (x**2)*5, so we
-        support the __rmul__ protocol.
-        """
-        return self.multiply_with(other)
 
     def __str__(self):
         return self.canonicalized_string()
@@ -295,33 +281,6 @@ class _Term:
             return self
         return _Term(Value.mul(c, self.coeff), self.var_powers)
 
-    def multiply_terms(self, other):
-        """
-        It is always possible to multiply two terms together, whether
-        they have the same exact variables, disjoint variables, or some
-        common subset of overlapping variables.
-
-        The coefficient is trivial--just multiply the two coefficients.
-
-        For the VarPower pieces, we use a dict to collect common
-        variables.
-        """
-        if other.coeff == 0:
-            return _Term.zero()
-        elif other.is_one():
-            return self
-
-        coeff = Value.mul(self.coeff, other.coeff)
-        exponents = collections.defaultdict(int)
-        for vp in self.var_powers:
-            exponents[vp.var_name] = vp.exponent
-        for vp in other.var_powers:
-            exponents[vp.var_name] += vp.exponent
-        parms = list(exponents.items())
-        parms.sort()
-        vps = [_VarPower(var, exponent) for var, exponent in parms]
-        return _Term(coeff, vps)
-
     def multiply_with(self, other):
         """
         suppose term1 = 2*(x**10)
@@ -333,7 +292,7 @@ class _Term:
         if type(other) == Value.value_type:
             return self.multiply_by_constant(other)
         elif type(other) == _Term:
-            return self.multiply_terms(other)
+            return _Term.multiply_terms(self, other)
 
         raise TypeError("We don't support this type of multiplication.")
 
@@ -386,6 +345,36 @@ class _Term:
     def constant(c):
         enforce_type(c, Value.value_type)
         return _Term(c, [])
+
+    @staticmethod
+    def multiply_terms(term1, term2):
+        """
+        It is always possible to multiply two terms together, whether
+        they have the same exact variables, disjoint variables, or some
+        common subset of overlapping variables.
+
+        The coefficient is trivial--just multiply the two coefficients.
+
+        For the VarPower pieces, we use a dict to collect common
+        variables.
+        """
+        if term1.coeff == Value.zero or term2.coeff == Value.zero:
+            return _Term.zero()
+        elif term1.is_one():
+            return term2
+        elif term2.is_one():
+            return term1
+
+        coeff = Value.mul(term1.coeff, term2.coeff)
+        exponents = collections.defaultdict(int)
+        for vp in term1.var_powers:
+            exponents[vp.var_name] = vp.exponent
+        for vp in term2.var_powers:
+            exponents[vp.var_name] += vp.exponent
+        parms = list(exponents.items())
+        parms.sort()
+        vps = [_VarPower(var, exponent) for var, exponent in parms]
+        return _Term(coeff, vps)
 
     @staticmethod
     def one():
@@ -603,14 +592,16 @@ class Poly:
         of its terms by a constant.
         """
         enforce_type(c, Value.value_type)
-        return Poly([c * term for term in self.terms])
+        return Poly([term.multiply_by_constant(c) for term in self.terms])
 
     def multiply_by_poly(self, other_poly):
         """
         We mostly rely on Poly.__init__ to do the heavy lifting here.
         """
         enforce_type(other_poly, Poly)
-        terms = [t1 * t2 for t1 in self.terms for t2 in other_poly.terms]
+        terms = [
+            _Term.multiply_terms(t1, t2) for t1 in self.terms for t2 in other_poly.terms
+        ]
         return Poly(terms)
 
     def multiply_with(self, other):
