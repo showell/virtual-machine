@@ -17,9 +17,18 @@ x = Poly.var("x")
 y = Poly.var("y")
 z = Poly.var("z")
 
+
+def complicated_polynomial(*, x, y, z):
+    assert type(x) == Poly
+    assert type(y) == Poly
+    assert type(z) == Poly
+    return 23 * (x**3) + 4 * (y**12) * 11 * (y**13) + 6 * (z**6) * 3 * z + 37
+
+
 # Compute the polynomial over the space of integers.
-p = 23 * (x**3) + 44 * (y**5) + 17 * (z**7) + 37
-assert_str(p, "23*(x**3)+44*(y**5)+17*(z**7)+37")
+p = complicated_polynomial(x=x, y=y, z=z)
+
+assert_str(p, "23*(x**3)+44*(y**25)+18*(z**7)+37")
 
 MODULUS = 10
 mod = lambda n: n % MODULUS
@@ -27,7 +36,7 @@ mod = lambda n: n % MODULUS
 # Create a function q that operates on smaller numbers
 # with arithmetic relative to MODULUS.
 q = p.transform_coefficients(mod)
-assert_str(q, "3*(x**3)+4*(y**5)+7*(z**7)+7")
+assert_str(q, "3*(x**3)+4*(y**25)+8*(z**7)+7")
 
 small_results = set()
 
