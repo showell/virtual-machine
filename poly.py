@@ -2,14 +2,15 @@ import collections
 import integer
 
 """
-The Poly class works purely with integer poynomials.
+The Poly class allows you to create polynomial expressions
+where each term includes a coefficient (which is integer
+by default) and then some subset of variables each raised
+to an integer power.
 
-It assumes the coefficients of the polynomials are integers,
-as well as the powers, and it assumes that you plug in integer/float
-values for the variables once you are ready to compute a value
-of the polynomial.
-
-It also assumes the powers of terms are non-negative.
+You can add/multiply instances of Poly by either other
+Poly objects or constant values (again, integer by default).
+You can also exponentiate Poly objects to create new Poly objects.
+All Poly objects are immuatable.
 
 It supports an arbitrary combination of variables, and for
 convenience sake, it prevents you from having punctuation
@@ -62,26 +63,26 @@ class _VarPower:
     instead.
     """
 
-    def __init__(self, var, power):
+    def __init__(self, var, exponent):
         enforce_type(var, str)
         for c in ",*+/-()":
             assert not c in var
-        enforce_type(power, int)
-        self.enforce_exponent(power)
+        enforce_type(exponent, int)
+        self.enforce_exponent(exponent)
         self.var = var
-        self.power = power
+        self.exponent = exponent
 
     def __pow__(self, exponent):
         enforce_type(exponent, int)
         self.enforce_exponent(exponent)
         if exponent == 1:
             return self
-        return _VarPower(self.var, self.power * exponent)
+        return _VarPower(self.var, self.exponent * exponent)
 
     def __str__(self):
-        if self.power == Value.one:
+        if self.exponent == Value.one:
             return self.var
-        return f"({self.var}**{self.power})"
+        return f"({self.var}**{self.exponent})"
 
     def enforce_exponent(self, exp):
         # We only handle positive powers of variables.
@@ -90,7 +91,7 @@ class _VarPower:
             raise ValueError("{exponent} is not positive")
 
     def eval(self, x):
-        return Value.power(x, self.power)
+        return Value.power(x, self.exponent)
 
 
 class _Term:
@@ -123,7 +124,7 @@ class _Term:
         sig = "*".join(str(vp) for vp in var_powers)
         self.var_powers = var_powers
         self.coeff = coeff
-        self.var_dict = {vp.var: vp.power for vp in var_powers}
+        self.var_dict = {vp.var: vp.exponent for vp in var_powers}
         self.sig = sig
 
     def __add__(self, other):
@@ -278,9 +279,9 @@ class _Term:
         coeff = Value.mul(self.coeff, other.coeff)
         powers = collections.defaultdict(int)
         for vp in self.var_powers:
-            powers[vp.var] = vp.power
+            powers[vp.var] = vp.exponent
         for vp in other.var_powers:
-            powers[vp.var] += vp.power
+            powers[vp.var] += vp.exponent
         parms = list(powers.items())
         parms.sort()
         vps = [_VarPower(var, power) for var, power in parms]
