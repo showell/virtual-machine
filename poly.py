@@ -489,7 +489,7 @@ class Poly:
         return self.multiply_with(other)
 
     def __neg__(self):
-        return Poly([-term for term in self.terms])
+        return self.negated()
 
     def __pow__(self, exponent):
         return self.raised_to_exponent(exponent)
@@ -507,7 +507,7 @@ class Poly:
         if type(other) == Value.value_type:
             other = Poly.constant(other)
         enforce_type(other, Poly)
-        return -self + other
+        return Poly.subtract_polys(other, self)
 
     def __str__(self):
         """
@@ -521,7 +521,7 @@ class Poly:
     def __sub__(self, other):
         if type(other) == Value.value_type:
             return self + Poly.constant(Value.negate(other))
-        return self + (-other)
+        return Poly.subtract_polys(self, other)
 
     def add_with(self, other):
         """
@@ -615,6 +615,12 @@ class Poly:
 
         enforce_type(other, Poly)
         return self.multiply_by_poly(other)
+
+    def negated(self):
+        """
+        This is the additive inverse.
+        """
+        return Poly([-term for term in self.terms])
 
     def put_terms_in_order(self):
         if len(self.terms) <= 1:
@@ -710,6 +716,12 @@ class Poly:
     @staticmethod
     def one():
         return Poly.constant(Value.one)
+
+    @staticmethod
+    def subtract_polys(poly1, poly2):
+        enforce_type(poly1, Poly)
+        enforce_type(poly2, Poly)
+        return poly1 + (-poly2)
 
     @staticmethod
     def sum(poly_list):
