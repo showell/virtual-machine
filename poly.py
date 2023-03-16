@@ -498,13 +498,13 @@ class Poly:
         but I wanted to avoid confusion with possible future extensions
         related to partial derivates.
         """
+        my_vars = self.variables()
         for var, value in var_assignments.items():
             if type(value) is Poly:
                 raise ValueError("Use Poly.substitute instead")
             enforce_type(value, Value.value_type)
-        my_vars = self.variables()
-        if not set(var_assignments).issubset(my_vars):
-            raise AssertionError("You are providing unknown variables.")
+            if var not in my_vars:
+                raise ValueError(f"{var} is not a variable for {self}")
         return Poly([term.apply(**var_assignments) for term in self.terms])
 
     def canonicalized_string(self):
