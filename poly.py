@@ -311,6 +311,7 @@ class _Term:
         return _Term(coeff, vps)
 
     def transform_coefficient(self, f):
+        assert callable(f)
         return _Term(f(self.coeff), self.var_powers)
 
     def variables(self):
@@ -334,9 +335,9 @@ class _Term:
     def sum(terms):
         """
         This is a helper for Poly.
-        It will only call us with terms that have the same sig.
+        Poly will only call us with terms that have the same sig.
 
-        It essentially just adds up coefficients.
+        We essentially just adds up coefficients.
 
         We also special-case the situation where there is only
         one term in the sum, since there is no need to create
@@ -351,14 +352,13 @@ class _Term:
         term = terms[0]
         sig = term.sig
         coeff = term.coeff
-        var_powers = term.var_powers
         for other in terms[1:]:
             enforce_type(other, _Term)
             if other.sig != sig:
                 raise AssertionError("We cannot combine unlike terms!!!")
             coeff = Value.add(coeff, other.coeff)
 
-        return _Term(coeff, var_powers)
+        return _Term(coeff, term.var_powers)
 
     def sort_key(self, var_list):
         """
@@ -387,11 +387,26 @@ class Poly:
         for term in terms:
             enforce_type(term, _Term)
         self.terms = terms
+
+        """
+        Note the invariant here. As SOON as a Poly gets constructed, it
+        immediately gets simplified, and its terms are put in a canonical
+        order. And the Poly object never gets mutated.
+
+        Because we eagerly do simplification and canonicalization, it is
+        somewhat expensive to construct a Poly object, but then all
+        subsequent calls to eval() are quicker.  If possible, callers
+        should try to reuse existing Poly objects.  For example, if you
+        multiple a Poly by one, don't unnecessarily create a new Poly.
+        """
         self.simplify()
         self.put_terms_in_order()
 
     def __add__(self, other):
-        return self.__radd__(other)
+        """
+        We assume commutative addition.
+        """
+        return self.add_with(other)
 
     def __eq__(self, other):
         """
@@ -436,12 +451,10 @@ class Poly:
         return self * self ** (exponent - 1)
 
     def __radd__(self, other):
-        if type(other) == Value.value_type:
-            if other == Value.zero:
-                return self
-            other = Poly.constant(other)
-        enforce_type(other, Poly)
-        return Poly(self.terms + other.terms)
+        """
+        We assume commutative addition.
+        """
+        return self.add_with(other)
 
     def __rmul__(self, other):
         if type(other) == int:
@@ -467,6 +480,30 @@ class Poly:
         if type(other) == Value.value_type:
             return self + Poly.constant(-other)
         return self + (-other)
+
+    def add_with(self, other):
+        """
+        We add either a Value-based constant (e.g. an integer)
+        or another Poly to ourself and return a new Poly (unless
+        we are adding Value.zero).
+        """
+        if type(other) == Value.value_type:
+            if other == Value.zero:
+                # take advantage of immutability
+                return self
+            """
+            For convenience, just immediately make a Poly
+            from the value and continue with Poly+Poly addition.
+            """
+            other = Poly.constant(other)
+
+        enforce_type(other, Poly)
+
+        """
+        All the heavy lifting happens when we construct the
+        new Poly--see __init__ for more context.
+        """
+        return Poly(self.terms + other.terms)
 
     def apply(self, **vars):
         """
