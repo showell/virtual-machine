@@ -2,7 +2,6 @@
 # This is slightly hacky for now.
 from poly import Poly, set_math
 from integer_math import IntegerMath
-
 from modulus_math import ModulusMath
 
 
