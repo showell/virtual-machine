@@ -459,7 +459,7 @@ class Poly:
         consistent across equivalent polynomials, and hopefully this
         is what the human wants too.
         """
-        
+
         return self.canonicalized_string()
 
     def __sub__(self, other):
@@ -569,6 +569,15 @@ class Poly:
         return self * self.raised_to_exponent(exponent - 1)
 
     def simplify(self):
+        """
+        In high school algebra, you remember
+
+            (x + 3) * (x + 4) = x*2 + 3x + 4x + 12
+
+        And then you combine the two middle terms to 7x.
+
+        That is what we do here in the more general sense.
+        """
         terms = self.terms
         if len(terms) == 0:
             return
@@ -576,6 +585,12 @@ class Poly:
             if terms[0].coeff == Value.zero:
                 self.terms = []
             return
+
+        """
+        Put all the "like" terms in the same bucket, then add them.
+
+        And then throw away any zero terms.
+        """
         buckets = collections.defaultdict(list)
         for term in terms:
             sig = term.sig
