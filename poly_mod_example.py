@@ -1,8 +1,9 @@
 # Show that modular arithmetic over polynomials behaves correctly.
 # This is slightly hacky for now.
-from poly import Poly, set_value_handler
-from integer import Integer
-from modulus import Modulus
+from poly import Poly, set_math
+from integer_math import IntegerMath
+
+from modulus_math import ModulusMath
 
 
 def assert_str(p, s):
@@ -48,12 +49,12 @@ for x in range(MODULUS * 2):
     for y in range(MODULUS * 2):
         for z in range(MODULUS * 2):
             # Do a normal integer computation of the p polynomial.
-            set_value_handler(Integer)
+            set_math(IntegerMath)
             p = complicated_polynomial()
             big_result = p.eval(x=x, y=y, z=z)
 
             # Compute the q polynomial with modular arithmetic.
-            set_value_handler(Modulus(MODULUS))
+            set_math(ModulusMath(MODULUS))
             q = complicated_polynomial()
             assert_equal(str(q), transformed_p_str)
             small_result = q.eval(x=mod(x), y=mod(y), z=mod(z))

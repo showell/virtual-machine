@@ -1,4 +1,4 @@
-class Integer:
+class IntegerMath:
     zero = 0
     one = 1
     value_type = int

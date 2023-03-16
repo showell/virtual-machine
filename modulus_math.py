@@ -1,4 +1,4 @@
-class Modulus:
+class ModulusMath:
     def __init__(self, modulus):
         assert modulus > 0
         assert type(modulus) == int

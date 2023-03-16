@@ -1,5 +1,5 @@
 import collections
-import integer
+import integer_math
 
 """
 The Poly class allows you to create polynomial expressions
@@ -44,7 +44,7 @@ with any commutative ring, but I have mostly tested with normal
 integers and a Modulus class.
 
 I tried to set up the structure here to allow for future extensions,
-and the function set_value_handler is the main hook for that.
+and the function set_math is the main hook for that.
 
 ABOUT EXPONENTS (important):
 
@@ -63,26 +63,26 @@ Useful references:
 
 """
 
-Value = integer.Integer
+Math = integer_math.IntegerMath
 
 
-def set_value_handler(handler):
+def set_math(handler):
     """
-    Allow us to build up polynomials with a Value type that isn't
+    Allow us to build up polynomials with a Math type that isn't
     necessarily based on integers.  We rely on the caller to provide
     a handler that behaves like integers in terms of algebraic structure.
-    See integer.py for the most obvious implementation of a handler.
+    See integer_math.py for the most obvious implementation of a handler.
 
     Multiplication and addition should both be commutative and associative.
 
-    Addition should have a zero-like value such that a + Value.zero == a.
+    Addition should have a zero-like value such that a + Math.zero == a.
 
-    Multiplication should have a one-like value such a * Value.one == a.
+    Multiplication should have a one-like value such a * Math.one == a.
 
     Multiplication should also be distributive with respect to addition.
     """
-    global Value
-    Value = handler
+    global Math
+    Math = handler
 
 
 def enforce_legal_variable_name(var_name):
@@ -131,13 +131,13 @@ class _VarPower:
         self.exponent = exponent
 
     def __str__(self):
-        if self.exponent == Value.one:
+        if self.exponent == Math.one:
             return self.var_name
         return f"({self.var_name}**{self.exponent})"
 
     def compute_power(self, x):
-        enforce_type(x, Value.value_type)
-        return Value.power(x, self.exponent)
+        enforce_type(x, Math.value_type)
+        return Math.power(x, self.exponent)
 
 
 class _Term:
@@ -159,7 +159,7 @@ class _Term:
     """
 
     def __init__(self, coeff, var_powers):
-        enforce_type(coeff, Value.value_type)
+        enforce_type(coeff, Math.value_type)
 
         enforce_type(var_powers, list)
         for var_power in var_powers:
@@ -187,7 +187,7 @@ class _Term:
         """
         for var, value in var_assignments.items():
             enforce_type(var, str)
-            enforce_type(value, Value.value_type)
+            enforce_type(value, Math.value_type)
 
         if not set(var_assignments) & set(self.var_dict):
             return self
@@ -197,7 +197,7 @@ class _Term:
         for vp in self.var_powers:
             if vp.var_name in var_assignments:
                 value = var_assignments[vp.var_name]
-                new_coeff = Value.mul(new_coeff, vp.compute_power(value))
+                new_coeff = Math.mul(new_coeff, vp.compute_power(value))
             else:
                 new_vps.append(vp)
         return _Term(new_coeff, new_vps)
@@ -210,7 +210,7 @@ class _Term:
 
         if self.is_constant():
             return coeff_str
-        if self.coeff == Value.one:
+        if self.coeff == Math.one:
             return self.sig
         return coeff_str + "*" + self.sig
 
@@ -233,16 +233,16 @@ class _Term:
         """
         for var, value in var_assignments.items():
             enforce_type(var, str)
-            enforce_type(value, Value.value_type)
+            enforce_type(value, Math.value_type)
 
         for var in self.variables():
             if var not in var_assignments:
                 raise ValueError(f"You are not providing an assignment for {var}.")
 
-        product = Value.one
+        product = Math.one
         for vp in self.var_powers:
-            product = Value.mul(product, vp.compute_power(var_assignments[vp.var_name]))
-        return Value.mul(self.coeff, product)
+            product = Math.mul(product, vp.compute_power(var_assignments[vp.var_name]))
+        return Math.mul(self.coeff, product)
 
     def factorize_on_var(self, substituted_var):
         """
@@ -252,7 +252,7 @@ class _Term:
         and reports the power of the substituted variable.
         """
         if substituted_var not in self.var_dict:
-            return (self, Value.zero)
+            return (self, Math.zero)
 
         var_powers = [vp for vp in self.var_powers if vp.var_name != substituted_var]
         power_of_substituted_var = self.var_dict[substituted_var]
@@ -265,15 +265,15 @@ class _Term:
         return len(self.var_powers) == 0
 
     def is_one(self):
-        return self.coeff == Value.one and len(self.var_powers) == 0
+        return self.coeff == Math.one and len(self.var_powers) == 0
 
     def multiply_by_constant(self, c):
-        enforce_type(c, Value.value_type)
-        if c == Value.zero:
+        enforce_type(c, Math.value_type)
+        if c == Math.zero:
             return _Term.zero()
-        if c == Value.one:
+        if c == Math.one:
             return self
-        return _Term(Value.mul(c, self.coeff), self.var_powers)
+        return _Term(Math.mul(c, self.coeff), self.var_powers)
 
     def multiply_with(self, other):
         """
@@ -283,7 +283,7 @@ class _Term:
             term1 * 3 == 6*(x**10)
             term1 * term2 == term2 * term1 == 70*(x**11)*z
         """
-        if type(other) == Value.value_type:
+        if type(other) == Math.value_type:
             return self.multiply_by_constant(other)
         elif type(other) == _Term:
             return _Term.multiply_terms(self, other)
@@ -291,7 +291,7 @@ class _Term:
         raise TypeError("We don't support this type of multiplication.")
 
     def negate(self):
-        return _Term(Value.negate(self.coeff), self.var_powers)
+        return _Term(Math.negate(self.coeff), self.var_powers)
 
     def raised_to_exponent(self, exponent):
         """
@@ -300,7 +300,7 @@ class _Term:
 
         In our world exponentiation is truly just a shorthand for
         repeated multiplication, so we expect non-negative exponents,
-        and we expect our Value class to respect those semantics.
+        and we expect our Math class to respect those semantics.
         """
         enforce_type(exponent, int)
         if exponent < 0:
@@ -312,7 +312,7 @@ class _Term:
         if exponent == 1:
             return self
 
-        coeff = Value.power(self.coeff, exponent)
+        coeff = Math.power(self.coeff, exponent)
         vps = [_VarPower(vp.var_name, vp.exponent * exponent) for vp in self.var_powers]
         return _Term(coeff, vps)
 
@@ -321,7 +321,7 @@ class _Term:
         This is used by Poly to sort terms in the normal high
         school algebra format.
         """
-        return tuple(self.var_dict.get(var, Value.zero) for var in var_list)
+        return tuple(self.var_dict.get(var, Math.zero) for var in var_list)
 
     def transform_coefficient(self, f):
         assert callable(f)
@@ -337,7 +337,7 @@ class _Term:
 
     @staticmethod
     def constant(c):
-        enforce_type(c, Value.value_type)
+        enforce_type(c, Math.value_type)
         return _Term(c, [])
 
     @staticmethod
@@ -352,14 +352,14 @@ class _Term:
         For the VarPower pieces, we use a dict to collect common
         variables.
         """
-        if term1.coeff == Value.zero or term2.coeff == Value.zero:
+        if term1.coeff == Math.zero or term2.coeff == Math.zero:
             return _Term.zero()
         elif term1.is_one():
             return term2
         elif term2.is_one():
             return term1
 
-        coeff = Value.mul(term1.coeff, term2.coeff)
+        coeff = Math.mul(term1.coeff, term2.coeff)
         exponents = collections.defaultdict(int)
         for vp in term1.var_powers:
             exponents[vp.var_name] = vp.exponent
@@ -372,7 +372,7 @@ class _Term:
 
     @staticmethod
     def one():
-        return _Term(Value.one, [])
+        return _Term(Math.one, [])
 
     @staticmethod
     def sum(terms):
@@ -399,18 +399,18 @@ class _Term:
             enforce_type(other, _Term)
             if other.sig != sig:
                 raise AssertionError("We cannot combine unlike terms!!!")
-            coeff = Value.add(coeff, other.coeff)
+            coeff = Math.add(coeff, other.coeff)
 
         return _Term(coeff, term.var_powers)
 
     @staticmethod
     def var(var):
         enforce_type(var, str)
-        return _Term(Value.one, [_VarPower(var, Value.one)])
+        return _Term(Math.one, [_VarPower(var, Math.one)])
 
     @staticmethod
     def zero():
-        return _Term(Value.zero, [])
+        return _Term(Math.zero, [])
 
 
 class Poly:
@@ -488,7 +488,7 @@ class Poly:
         return self.multiply_with(other)
 
     def __rsub__(self, other):
-        if type(other) == Value.value_type:
+        if type(other) == Math.value_type:
             other = Poly.constant(other)
         enforce_type(other, Poly)
         return Poly.subtract_polys(other, self)
@@ -503,25 +503,25 @@ class Poly:
         return self.canonicalized_string()
 
     def __sub__(self, other):
-        if type(other) == Value.value_type:
+        if type(other) == Math.value_type:
             other = Poly.constant(other)
         enforce_type(other, Poly)
         return Poly.subtract_polys(self, other)
 
     def add_with(self, other):
         """
-        We add either a Value-based constant (e.g. an integer)
+        We add either a Math-based constant (e.g. an integer)
         or another Poly to ourself and return a new Poly (unless
-        we are adding Value.zero).
+        we are adding Math.zero).
         """
-        if type(other) == Value.value_type:
+        if type(other) == Math.value_type:
             return self.add_with_constant(other)
         else:
             enforce_type(other, Poly)
             return Poly.add_polys(self, other)
 
     def add_with_constant(self, c):
-        if c == Value.zero:
+        if c == Math.zero:
             # take advantage of immutability
             return self
         """
@@ -541,7 +541,7 @@ class Poly:
         for var, value in var_assignments.items():
             if type(value) is Poly:
                 raise ValueError("Use Poly.substitute instead")
-            enforce_type(value, Value.value_type)
+            enforce_type(value, Math.value_type)
             if var not in my_vars:
                 raise ValueError(f"{var} is not a variable for {self}")
         return Poly([term.apply(**var_assignments) for term in self.terms])
@@ -552,7 +552,7 @@ class Poly:
         put_terms_in_order when we make a Poly object.
         """
         if len(self.terms) == 0:
-            return str(Value.zero)
+            return str(Math.zero)
         return "+".join(term.canonicalized_string() for term in self.terms)
 
     def is_one(self):
@@ -563,7 +563,7 @@ class Poly:
 
     def eval(self, **var_assignments):
         """
-        This method converts a Poly to a Value (e.g. integer) by
+        This method converts a Poly to a Math value (e.g. integer) by
         using the supplied variable assignments.
         """
         my_vars = self.variables()
@@ -571,11 +571,11 @@ class Poly:
             raise ValueError("Not enough variables supplied. Maybe use apply?")
 
         for var, value in var_assignments.items():
-            enforce_type(value, Value.value_type)
+            enforce_type(value, Math.value_type)
 
-        result = Value.zero
+        result = Math.zero
         for term in self.terms:
-            result = Value.add(result, term.eval(**var_assignments))
+            result = Math.add(result, term.eval(**var_assignments))
         return result
 
     def multiply_by_constant(self, c):
@@ -584,14 +584,14 @@ class Poly:
         a polynomial by a constant, that is just like multiplying each
         of its terms by a constant.
         """
-        enforce_type(c, Value.value_type)
+        enforce_type(c, Math.value_type)
         return Poly([term.multiply_by_constant(c) for term in self.terms])
 
     def multiply_with(self, other):
         if type(other) == _Term:
             raise ValueError("Use Poly contructors to build up terms.")
 
-        if type(other) == Value.value_type:
+        if type(other) == Math.value_type:
             return self.multiply_by_constant(other)
 
         enforce_type(other, Poly)
@@ -640,7 +640,7 @@ class Poly:
         if len(terms) == 0:
             return
         if len(terms) == 1:
-            if terms[0].coeff == Value.zero:
+            if terms[0].coeff == Math.zero:
                 self.terms = []
             return
 
@@ -657,7 +657,7 @@ class Poly:
         new_terms = []
         for sub_terms in buckets.values():
             term = _Term.sum(sub_terms)
-            if term.coeff != Value.zero:
+            if term.coeff != Math.zero:
                 new_terms.append(term)
 
         self.terms = new_terms
@@ -702,7 +702,7 @@ class Poly:
 
     @staticmethod
     def constant(c):
-        enforce_type(c, Value.value_type)
+        enforce_type(c, Math.value_type)
         return Poly([_Term.constant(c)])
 
     @staticmethod
@@ -729,7 +729,7 @@ class Poly:
 
     @staticmethod
     def one():
-        return Poly.constant(Value.one)
+        return Poly.constant(Math.one)
 
     @staticmethod
     def poly_based_on_term_with_variable_substitution(term, var_name, var_poly):
@@ -789,7 +789,7 @@ class Poly:
         _Term, and Poly.
         """
         enforce_type(label, str)
-        coeff = Value.one
+        coeff = Math.one
         exponent = 1  # exponents are ALWAYS integers
         var_power = _VarPower(label, exponent)
         term = _Term(coeff, [var_power])
