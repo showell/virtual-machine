@@ -148,27 +148,7 @@ class _Term:
         return _Term(Value.negate(self.coeff), self.var_powers)
 
     def __pow__(self, exponent):
-        """
-        To exponentiate a term, we exponentiate our coefficient and
-        all our VarPower sub-terms.
-
-        In our world exponentiation is truly just a shorthand for
-        repeated multiplication, so we expect non-negative exponents,
-        and we expect our Value class to respect those semantics.
-        """
-        enforce_type(exponent, int)
-        if exponent < 0:
-            raise ValueError("We do not support negative exponentiation yet.")
-
-        if exponent == 0:
-            return _Term.one()
-
-        if exponent == 1:
-            return self
-
-        coeff = Value.power(self.coeff, exponent)
-        vps = [vp**exponent for vp in self.var_powers]
-        return _Term(coeff, vps)
+        return self.raised_to_exponent(exponent)
 
     def __rmul__(self, other):
         """
@@ -310,6 +290,29 @@ class _Term:
         vps = [_VarPower(var, exponent) for var, exponent in parms]
         return _Term(coeff, vps)
 
+    def raised_to_exponent(self, exponent):
+        """
+        To exponentiate a term, we exponentiate our coefficient and
+        all our VarPower sub-terms.
+
+        In our world exponentiation is truly just a shorthand for
+        repeated multiplication, so we expect non-negative exponents,
+        and we expect our Value class to respect those semantics.
+        """
+        enforce_type(exponent, int)
+        if exponent < 0:
+            raise ValueError("We do not support negative exponentiation yet.")
+
+        if exponent == 0:
+            return _Term.one()
+
+        if exponent == 1:
+            return self
+
+        coeff = Value.power(self.coeff, exponent)
+        vps = [vp**exponent for vp in self.var_powers]
+        return _Term(coeff, vps)
+
     def transform_coefficient(self, f):
         assert callable(f)
         return _Term(f(self.coeff), self.var_powers)
@@ -440,15 +443,7 @@ class Poly:
         return Poly([-term for term in self.terms])
 
     def __pow__(self, exponent):
-        enforce_type(exponent, int)
-        if exponent < 0:
-            raise ValueError("we do not support negative exponents")
-
-        if exponent == 0:
-            return Poly.one()
-        if exponent == 1:
-            return self
-        return self * self ** (exponent - 1)
+        return self.raised_to_exponent(exponent)
 
     def __radd__(self, other):
         """
@@ -545,6 +540,23 @@ class Poly:
             return
         sorted_vars = sorted(self.variables())
         self.terms.sort(key=lambda term: term.sort_key(sorted_vars), reverse=True)
+
+    def raised_to_exponent(self, exponent):
+        """
+        Our definition of p***4 is literally p*p*p*p.
+
+        We only support the high-school-math notion of exponentation;
+        p**4 is just a shorthand for a discrete number of multiplications.
+        """
+        enforce_type(exponent, int)
+        if exponent < 0:
+            raise ValueError("we do not support negative exponents")
+
+        if exponent == 0:
+            return Poly.one()
+        if exponent == 1:
+            return self
+        return self * self.raised_to_exponent(exponent - 1)
 
     def simplify(self):
         terms = self.terms
