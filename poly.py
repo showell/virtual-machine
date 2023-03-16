@@ -153,15 +153,7 @@ class _Term:
         self.var_dict = {vp.var: vp.exponent for vp in var_powers}
 
     def __add__(self, other):
-        """
-        We rely heavily on the Poly class to only invoke term
-        addition when the terms have the same signature.
-        """
-        enforce_type(other, _Term)
-        if self.sig != other.sig:
-            raise AssertionError("Do not combine unlike terms!!!!")
-        assert len(self.var_powers) == len(other.var_powers)
-        return _Term(Value.add(self.coeff, other.coeff), self.var_powers)
+        return self.add_to_similar_term(other)
 
     def __mul__(self, other):
         """
@@ -201,6 +193,17 @@ class _Term:
         class handle substraction.
         """
         raise NotImplementedError
+
+    def add_to_similar_term(self, other):
+        """
+        We rely heavily on the Poly class to only invoke term
+        addition when the terms have the same signature.
+        """
+        enforce_type(other, _Term)
+        if self.sig != other.sig:
+            raise AssertionError("Do not combine unlike terms!!!!")
+        assert len(self.var_powers) == len(other.var_powers)
+        return _Term(Value.add(self.coeff, other.coeff), self.var_powers)
 
     def apply(self, **var_assignments):
         """
