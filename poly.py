@@ -427,7 +427,7 @@ class Poly:
         to be non-equal.
         """
         enforce_type(other, Poly)
-        return str(self) == str(other)
+        return self.canonicalized_string() == other.canonicalized_string()
 
     def __mul__(self, other):
         return self.multiply_with(other)
@@ -454,9 +454,13 @@ class Poly:
         return -self + other
 
     def __str__(self):
-        if len(self.terms) == 0:
-            return str(Value.zero)
-        return "+".join(str(term) for term in self.terms)
+        """
+        We try to make sure our canonical string representation is
+        consistent across equivalent polynomials, and hopefully this
+        is what the human wants too.
+        """
+        
+        return self.canonicalized_string()
 
     def __sub__(self, other):
         if type(other) == Value.value_type:
@@ -502,6 +506,15 @@ class Poly:
         if not set(var_assignments).issubset(my_vars):
             raise AssertionError("You are providing unknown variables.")
         return Poly([term.apply(**var_assignments) for term in self.terms])
+
+    def canonicalized_string(self):
+        """
+        This method is easy, because we do the heavy lifting of calling
+        put_terms_in_order when we make a Poly object.
+        """
+        if len(self.terms) == 0:
+            return str(Value.zero)
+        return "+".join(str(term) for term in self.terms)
 
     def eval(self, **var_assignments):
         """
