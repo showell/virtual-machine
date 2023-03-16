@@ -41,7 +41,7 @@ characters that would conflict with operators like +, -, *, etc.
 
 I believe this project could be pretty easily modified to work
 with any commutative ring, but I have mostly tested with normal
-integers and a Modulus class.
+integers, fractions, and a Modulus class.
 
 I tried to set up the structure here to allow for future extensions,
 and the function set_math is the main hook for that.
