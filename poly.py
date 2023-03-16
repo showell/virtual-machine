@@ -85,11 +85,11 @@ def set_value_handler(handler):
     Value = handler
 
 
-
 def enforce_legal_variable_name(var_name):
     for c in ",*+/-()":
         if c in var_name:
             raise ValueError(f"Do not use variable names that include {c}.")
+
 
 def enforce_sorted_distinct_list(lst):
     enforce_type(lst, list)
@@ -100,9 +100,11 @@ def enforce_sorted_distinct_list(lst):
     if len(lst) != len(set(lst)):
         raise ValueError(f"{lst} has duplicate items")
 
+
 def enforce_type(var, _type):
     if type(var) != _type:
         raise TypeError(f"{var} is not type {_type}")
+
 
 class _VarPower:
     """
@@ -177,9 +179,6 @@ class _Term:
         IMPORTANT: We assume commutative multiplication.
         """
         return self.multiply_with(other)
-
-    def __neg__(self):
-        return _Term(Value.negate(self.coeff), self.var_powers)
 
     def __pow__(self, exponent):
         return self.raised_to_exponent(exponent)
@@ -337,6 +336,9 @@ class _Term:
             return self.multiply_terms(other)
 
         raise TypeError("We don't support this type of multiplication.")
+
+    def negate(self):
+        return _Term(Value.negate(self.coeff), self.var_powers)
 
     def raised_to_exponent(self, exponent):
         """
@@ -625,7 +627,7 @@ class Poly:
         """
         This is the additive inverse.
         """
-        return Poly([-term for term in self.terms])
+        return Poly([term.negate() for term in self.terms])
 
     def put_terms_in_order(self):
         if len(self.terms) <= 1:

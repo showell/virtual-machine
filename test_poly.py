@@ -55,7 +55,6 @@ assert term.sig == "x*(y**22)"
 
 term = (3 * (x**4)) ** 3
 assert str(term) == "27*(x**12)"
-assert str(-term) == "(-27)*(x**12)"
 
 t = y * x**2
 assert str(t) == "(x**2)*y"
