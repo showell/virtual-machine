@@ -589,17 +589,32 @@ class Poly:
             result = Value.add(result, term.eval(**var_assignments))
         return result
 
-    def multiply_with(self, other):
+    def multiply_by_constant(self, c):
+        """
+        We rely on the distributive property here.  If you multiply
+        a polynomial by a constant, that is just like multiplying each
+        of its terms by a constant.
+        """
+        enforce_type(c, Value.value_type)
+        return Poly([c * term for term in self.terms])
+
+    def multiply_by_poly(self, other_poly):
         """
         We mostly rely on Poly.__init__ to do the heavy lifting here.
         """
-        if type(other) == int:
-            return Poly([term * other for term in self.terms])
-        elif type(other) == _Term:
-            raise ValueError("Use Poly contructors to build up terms.")
-        enforce_type(other, Poly)
-        terms = [t1 * t2 for t1 in self.terms for t2 in other.terms]
+        enforce_type(other_poly, Poly)
+        terms = [t1 * t2 for t1 in self.terms for t2 in other_poly.terms]
         return Poly(terms)
+
+    def multiply_with(self, other):
+        if type(other) == _Term:
+            raise ValueError("Use Poly contructors to build up terms.")
+
+        if type(other) == Value.value_type:
+            return self.multiply_by_constant(other)
+
+        enforce_type(other, Poly)
+        return self.multiply_by_poly(other)
 
     def put_terms_in_order(self):
         if len(self.terms) <= 1:
