@@ -17,6 +17,9 @@ like +, -, *, etc.
 
 Useful references:
     * https://docs.python.org/3/library/operator.html
+    * https://en.wikipedia.org/wiki/Polynomial
+    * https://en.wikipedia.org/wiki/Modular_arithmetic
+    * https://en.wikipedia.org/wiki/Commutative_ring
 """
 
 
