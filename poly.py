@@ -273,21 +273,6 @@ class _Term:
     def is_one(self):
         return self.coeff == Value.one and len(self.var_powers) == 0
 
-    def multiply_with(self, other):
-        """
-        suppose term1 = 2*(x**10)
-            and term2 = 5*x * 7*z
-        then
-            term1 * 3 == 6*(x**10)
-            term1 * term2 == term2 * term1 == 70*(x**11)*z
-        """
-        if type(other) == Value.value_type:
-            return self.multiply_by_constant(other)
-        elif type(other) == _Term:
-            return self.multiply_terms(other)
-
-        raise TypeError("We don't support this type of multiplication.")
-
     def multiply_by_constant(self, c):
         enforce_type(c, Value.value_type)
         if c == Value.zero:
@@ -322,6 +307,21 @@ class _Term:
         parms.sort()
         vps = [_VarPower(var, exponent) for var, exponent in parms]
         return _Term(coeff, vps)
+
+    def multiply_with(self, other):
+        """
+        suppose term1 = 2*(x**10)
+            and term2 = 5*x * 7*z
+        then
+            term1 * 3 == 6*(x**10)
+            term1 * term2 == term2 * term1 == 70*(x**11)*z
+        """
+        if type(other) == Value.value_type:
+            return self.multiply_by_constant(other)
+        elif type(other) == _Term:
+            return self.multiply_terms(other)
+
+        raise TypeError("We don't support this type of multiplication.")
 
     def raised_to_exponent(self, exponent):
         """
