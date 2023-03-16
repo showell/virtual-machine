@@ -153,9 +153,10 @@ class _Term:
         for var_power in var_powers:
             enforce_type(var_power, _VarPower)
         enforce_type(coeff, Value.value_type)
-        vars = [vp.var_name for vp in var_powers]
-        assert vars == sorted(vars)
-        assert len(vars) == len(set(vars))
+
+        var_names = [vp.var_name for vp in var_powers]
+        assert var_names == sorted(var_names)
+        assert len(var_names) == len(set(var_names))
 
         self.var_powers = var_powers
         self.coeff = coeff
