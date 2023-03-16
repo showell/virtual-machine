@@ -60,19 +60,13 @@ assert_equal(str(p * q), str(q * p))
 # We allow "==" between Poly objects, and equality means that
 # the two polynomials use the same variable names and compute
 # values in an identical fashion.
-p = 12 * x + 39 * (z**4)
-q = z + 111 * y + x - 2
-
 assert zero != one
 assert one != zero
 assert x != y
-assert p != q
-assert p**2 != q**2
+assert y != z
+assert z != x
 
-assert p != p + 1
-assert p != p - 3
-assert p * 3 != p * 2
-assert p**4 != p**3
+assert x == x
 
 assert one == zero + 1
 assert two == one + 1
@@ -85,6 +79,17 @@ assert three * 1 == three
 assert one - 1 == zero
 assert two - 1 == one
 assert three - 1 == two
+
+p = 12 * x + 39 * (z**4)
+q = z + 111 * y + x - 2
+
+assert p != q
+assert p**2 != q**2
+
+assert p != p + 1
+assert p != p - 3
+assert p * 3 != p * 2
+assert p**4 != p**3
 
 assert 0 * p == p * 0
 assert 1 * p == p * 1
