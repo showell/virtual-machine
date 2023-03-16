@@ -692,6 +692,10 @@ class Poly:
         All the heavy lifting happens when we construct the
         new Poly--see __init__ for more context.
         """
+        if poly1.is_zero():
+            return poly2
+        if poly2.is_zero():
+            return poly1
         enforce_type(poly1, Poly)
         enforce_type(poly2, Poly)
         return Poly(poly1.terms + poly2.terms)

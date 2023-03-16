@@ -104,3 +104,17 @@ assert str(p) == "(y**4)+5*z"
 
 p = (x**2 + 5 * z).substitute("x", 100 * y**2 + 3)
 assert str(p) == "10000*(y**4)+600*(y**2)+5*z+9"
+
+
+assert (0 * p) == zero
+assert (p * 0) == zero
+assert (p * 1) == p
+assert (1 * p) == p
+assert (p + 0) == p
+assert (0 + p) == p
+assert Poly.add_polys(p, zero) == p
+assert Poly.add_polys(zero, p) == p
+assert Poly.multiply_polys(zero, p) == zero
+assert Poly.multiply_polys(p, zero) == zero
+assert Poly.multiply_polys(one, p) == p
+assert Poly.multiply_polys(p, one) == p
