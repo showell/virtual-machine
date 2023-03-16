@@ -282,15 +282,19 @@ class _Term:
             term1 * term2 == term2 * term1 == 70*(x**11)*z
         """
         if type(other) == Value.value_type:
-            if other == Value.zero:
-                return _Term.zero()
-            if other == Value.one:
-                return self
-            return _Term(Value.mul(self.coeff, other), self.var_powers)
+            return self.multiply_by_constant(other)
         elif type(other) == _Term:
             return self.multiply_terms(other)
-        else:
-            raise TypeError("We don't support this type of multiplication.")
+
+        raise TypeError("We don't support this type of multiplication.")
+
+    def multiply_by_constant(self, c):
+        enforce_type(c, Value.value_type)
+        if c == Value.zero:
+            return _Term.zero()
+        if c == Value.one:
+            return self
+        return _Term(Value.mul(c, self.coeff), self.var_powers)
 
     def multiply_terms(self, other):
         """
