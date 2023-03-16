@@ -104,7 +104,7 @@ class _Term:
     also have constant terms.  For constants, see the methods
     for "zero", "one", and "constant".
 
-    Our basic data structure simply stores an integer coefficient
+    Our basic data structure simply stores a coefficient
     (abbreviated as "coeff") and a list of VarPowers.
 
     We also keep a dictionary keyed on var names for quick lookups,
@@ -139,12 +139,23 @@ class _Term:
         return _Term(Value.add(self.coeff, other.coeff), self.var_powers)
 
     def __mul__(self, other):
-        return self.__rmul__(other)
+        """
+        IMPORTANT: We assume commutative multiplication.
+        """
+        return self.multiply_with(other)
 
     def __neg__(self):
         return _Term(Value.negate(self.coeff), self.var_powers)
 
     def __pow__(self, exponent):
+        """
+        To exponentiate a term, we exponentiate our coefficient and
+        all our VarPower sub-terms.
+
+        In our world exponentiation is truly just a shorthand for
+        repeated multiplication, so we expect non-negative exponents,
+        and we expect our Value class to respect those semantics.
+        """
         enforce_type(exponent, int)
         if exponent < 0:
             raise ValueError("We do not support negative exponentiation yet.")
@@ -165,16 +176,7 @@ class _Term:
         write something like 5*(x**2) than (x**2)*5, so we
         support the __rmul__ protocol.
         """
-        if type(other) == Value.value_type:
-            if other == Value.zero:
-                return _Term.zero()
-            if other == Value.one:
-                return self
-            return _Term(Value.mul(self.coeff, other), self.var_powers)
-        elif type(other) == _Term:
-            return self.multiply_terms(other)
-        else:
-            raise TypeError("We don't support this type of multiplication.")
+        return self.multiply_with(other)
 
     def __str__(self):
         """
@@ -209,8 +211,10 @@ class _Term:
         for var, value in vars.items():
             enforce_type(var, str)
             enforce_type(value, Value.value_type)
+
         if not set(vars) & set(self.var_dict):
             return self
+
         new_coeff = self.coeff
         new_vps = []
         for vp in self.var_powers:
@@ -236,7 +240,7 @@ class _Term:
             enforce_type(value, Value.value_type)
 
         if not self.variables().issubset(vars):
-            raise ValueError("You are providing unknown variables.")
+            raise ValueError("You are not providing all the needed variables.")
 
         product = Value.one
         for vp in self.var_powers:
@@ -246,7 +250,7 @@ class _Term:
     def factorize_on_var(self, substituted_var):
         """
         This method is used by Poly when you are trying to substitute
-        a variable with some polynomial expression.  The _Term here
+        a variable with some polynomial expression.  The _Term object here
         basically splits out the non-substituted portion of the term,
         and reports the power of the substituted variable.
         """
@@ -259,6 +263,25 @@ class _Term:
 
     def is_one(self):
         return self.coeff == Value.one and len(self.var_powers) == 0
+
+    def multiply_with(self, other):
+        """
+        suppose term1 = 2*(x**10)
+            and term2 = 5*x * 7*z
+        then
+            term1 * 3 == 6*(x**10)
+            term1 * term2 == term2 * term1 == 70*(x**11)*z
+        """
+        if type(other) == Value.value_type:
+            if other == Value.zero:
+                return _Term.zero()
+            if other == Value.one:
+                return self
+            return _Term(Value.mul(self.coeff, other), self.var_powers)
+        elif type(other) == _Term:
+            return self.multiply_terms(other)
+        else:
+            raise TypeError("We don't support this type of multiplication.")
 
     def multiply_terms(self, other):
         """
@@ -277,14 +300,14 @@ class _Term:
             return self
 
         coeff = Value.mul(self.coeff, other.coeff)
-        powers = collections.defaultdict(int)
+        exponents = collections.defaultdict(int)
         for vp in self.var_powers:
-            powers[vp.var] = vp.exponent
+            exponents[vp.var] = vp.exponent
         for vp in other.var_powers:
-            powers[vp.var] += vp.exponent
-        parms = list(powers.items())
+            exponents[vp.var] += vp.exponent
+        parms = list(exponents.items())
         parms.sort()
-        vps = [_VarPower(var, power) for var, power in parms]
+        vps = [_VarPower(var, exponent) for var, exponent in parms]
         return _Term(coeff, vps)
 
     def transform_coefficient(self, f):
