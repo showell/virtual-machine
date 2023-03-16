@@ -1,6 +1,6 @@
 # Show that modular arithmetic over polynomials behaves correctly.
 # This is slightly hacky for now.
-from poly import Integer, Value, Poly
+from poly import Integer, Modulus, Poly, set_value_handler
 
 
 def assert_str(p, s):
@@ -13,35 +13,31 @@ def assert_equal(m, n):
         raise AssertionError(f"{m} != {n}")
 
 
-x = Poly.var("x")
-y = Poly.var("y")
-z = Poly.var("z")
-
-
-def complicated_polynomial(*, x, y, z):
-    assert type(x) == Poly
-    assert type(y) == Poly
-    assert type(z) == Poly
+def complicated_polynomial():
+    x = Poly.var("x")
+    y = Poly.var("y")
+    z = Poly.var("z")
     return (
         (9 * (x**3)) * (z + 3)
         + 4 * ((y**6) ** 2) * 8 * (y**8)
         + 6 * (z**6) * 3
-        + (x + 9) ** 2
+        + (9 - x) ** 2
     )
 
 
 # Compute the polynomial over the space of integers.
-p = complicated_polynomial(x=x, y=y, z=z)
+p = complicated_polynomial()
 
-assert_str(p, "9*(x**3)*z+27*(x**3)+(x**2)+18*x+32*(y**20)+18*(z**6)+81")
+assert_str(p, "9*(x**3)*z+27*(x**3)+(x**2)+(-18)*x+32*(y**20)+18*(z**6)+81")
 
 MODULUS = 10
 mod = lambda n: n % MODULUS
 
 # Create a function q that operates on smaller numbers
 # with arithmetic relative to MODULUS.
-q = p.transform_coefficients(mod)
-assert_str(q, "9*(x**3)*z+7*(x**3)+(x**2)+8*x+2*(y**20)+8*(z**6)+1")
+transformed_p = p.transform_coefficients(mod)
+transformed_p_str = "9*(x**3)*z+7*(x**3)+(x**2)+2*x+2*(y**20)+8*(z**6)+1"
+assert_equal(str(transformed_p), transformed_p_str)
 
 small_results = set()
 
@@ -50,17 +46,14 @@ for x in range(MODULUS * 2):
     for y in range(MODULUS * 2):
         for z in range(MODULUS * 2):
             # Do a normal integer computation of the p polynomial.
-            Value.eval_add = Integer.add
-            Value.eval_mul = Integer.mul
-            Value.eval_coeff_mul = Integer.mul
-
+            set_value_handler(Integer)
+            p = complicated_polynomial()
             big_result = p.eval(x=x, y=y, z=z)
 
             # Compute the q polynomial with modular arithmetic.
-            Value.eval_add = lambda a, b: mod(a + b)
-            Value.eval_mul = lambda a, b: mod(a * b)
-            Value.eval_coeff_mul = lambda a, b: mod(a * b)
-
+            set_value_handler(Modulus(MODULUS))
+            q = complicated_polynomial()
+            assert_equal(str(q), transformed_p_str)
             small_result = q.eval(x=mod(x), y=mod(y), z=mod(z))
 
             # assert we are doing something non-trivial here

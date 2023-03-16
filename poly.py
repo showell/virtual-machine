@@ -76,7 +76,44 @@ class Integer:
     eval_coeff_mul = mul
 
 
+class Modulus:
+    def __init__(self, modulus):
+        assert modulus > 0
+        assert type(modulus) == int
+        self.zero = 0
+        self.one = 1
+        self.value_type = int
+        self.modulus = modulus
+
+    def add(self, a, b):
+        assert type(a) == int
+        assert type(b) == int
+        return (a + b) % self.modulus
+
+    def mul(self, a, b):
+        assert type(a) == int
+        assert type(b) == int
+        return (a * b) % self.modulus
+
+    def power(n, exp):
+        # not supported in example
+        assert False
+
+    def negate(self, n):
+        assert type(n) == int
+        return self.modulus - n
+
+    eval_add = add
+    eval_mul = mul
+    eval_coeff_mul = mul
+
+
 Value = Integer
+
+
+def set_value_handler(handler):
+    global Value
+    Value = handler
 
 
 class _VarPower:
@@ -298,14 +335,11 @@ class _Term:
             return self
 
         coeff = Value.mul(self.coeff, other.coeff)
-        powers = dict()
+        powers = collections.defaultdict(int)
         for vp in self.var_powers:
             powers[vp.var] = vp.power
         for vp in other.var_powers:
-            if vp.var in powers:
-                powers[vp.var] = Value.add(powers[vp.var], vp.power)
-            else:
-                powers[vp.var] = vp.power
+            powers[vp.var] += vp.power
         parms = list(powers.items())
         parms.sort()
         vps = [_VarPower(var, power) for var, power in parms]
