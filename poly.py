@@ -127,7 +127,7 @@ class _Term:
 
     A term would be something like 2*(x**3)*(y**3), but you can
     also have constant terms.  For constants, see the methods
-    for "zero", "one", and "constant".
+    _Term.constant, _Term.one, and _Term.zero.
 
     Our basic data structure simply stores a coefficient
     (abbreviated as "coeff") and a list of VarPowers.
@@ -339,6 +339,13 @@ class _Term:
         vps = [_VarPower(vp.var, vp.exponent * exponent) for vp in self.var_powers]
         return _Term(coeff, vps)
 
+    def sort_key(self, var_list):
+        """
+        This is used by Poly to sort terms in the normal high
+        school algebra format.
+        """
+        return tuple(self.var_dict.get(var, Value.zero) for var in var_list)
+
     def transform_coefficient(self, f):
         assert callable(f)
         return _Term(f(self.coeff), self.var_powers)
@@ -388,13 +395,6 @@ class _Term:
             coeff = Value.add(coeff, other.coeff)
 
         return _Term(coeff, term.var_powers)
-
-    def sort_key(self, var_list):
-        """
-        This is used by Poly to sort terms in the normal high
-        school algebra format.
-        """
-        return tuple(self.var_dict.get(var, Value.zero) for var in var_list)
 
     @staticmethod
     def var(var):
