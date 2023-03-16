@@ -59,22 +59,6 @@ class Integer:
         assert type(n) == int
         return -n
 
-    """
-    For certain exotic use cases like modular arithmetic, you may wish
-    to stay in integer space while you build up a polynomial from expressions,
-    but then you may use a different type of arithmetic once you actually
-    evaluate the polynomial over assigned values.
-
-    You could also override these methods to count the number of compute
-    steps, or to memoize computations, or other strange things.
-
-    I haven't tested many other schemes yet, so this code is pretty
-    speculative.
-    """
-    eval_add = add
-    eval_mul = mul
-    eval_coeff_mul = mul
-
 
 class Modulus:
     def __init__(self, modulus):
@@ -86,26 +70,35 @@ class Modulus:
         self.modulus = modulus
 
     def add(self, a, b):
-        assert type(a) == int
-        assert type(b) == int
+        self.check(a)
+        self.check(b)
         return (a + b) % self.modulus
 
+    def check(self, x):
+        assert type(x) == int
+        assert 0 <= x
+        assert x < self.modulus
+
     def mul(self, a, b):
-        assert type(a) == int
-        assert type(b) == int
+        self.check(a)
+        self.check(b)
         return (a * b) % self.modulus
 
-    def power(n, exp):
-        # not supported in example
-        assert False
-
     def negate(self, n):
-        assert type(n) == int
+        self.check(n)
         return self.modulus - n
 
-    eval_add = add
-    eval_mul = mul
-    eval_coeff_mul = mul
+    def power(self, n, exponent):
+        self.check(n)
+        assert type(exponent) == int
+        assert exponent >= 0
+
+        def repeated_multiply(exp):
+            if exp == 0:
+                return 1
+            return self.mul(n, repeated_multiply(exp - 1))
+
+        return repeated_multiply(exponent)
 
 
 Value = Integer
@@ -150,12 +143,7 @@ class _VarPower:
         return f"({self.var}**{self.power})"
 
     def eval(self, x):
-        "Compute this the difficult way."
-        result = Value.one
-        for i in range(self.power):
-            result = Value.mul(result, x)
-
-        return result
+        return Value.power(x, self.power)
 
 
 class _Term:
@@ -298,8 +286,8 @@ class _Term:
         assert self.variables().issubset(vars)
         product = Value.one
         for vp in self.var_powers:
-            product = Value.eval_mul(product, vp.eval(vars[vp.var]))
-        return Value.eval_coeff_mul(self.coeff, product)
+            product = Value.mul(product, vp.eval(vars[vp.var]))
+        return Value.mul(self.coeff, product)
 
     def factorize_on_var(self, substituted_var):
         """
@@ -528,7 +516,7 @@ class Poly:
 
         result = Value.zero
         for term in self.terms:
-            result = Value.eval_add(result, term.eval(**vars))
+            result = Value.add(result, term.eval(**vars))
         return result
 
     def put_terms_in_order(self):
