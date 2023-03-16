@@ -562,6 +562,12 @@ class Poly:
             return str(Value.zero)
         return "+".join(term.canonicalized_string() for term in self.terms)
 
+    def is_one(self):
+        return len(self.terms) == 1 and self.terms[0].is_one()
+
+    def is_zero(self):
+        return len(self.terms) == 0
+
     def eval(self, **var_assignments):
         """
         This method converts a Poly to a Value (e.g. integer) by
@@ -588,16 +594,6 @@ class Poly:
         enforce_type(c, Value.value_type)
         return Poly([term.multiply_by_constant(c) for term in self.terms])
 
-    def multiply_by_poly(self, other_poly):
-        """
-        We mostly rely on Poly.__init__ to do the heavy lifting here.
-        """
-        enforce_type(other_poly, Poly)
-        terms = [
-            _Term.multiply_terms(t1, t2) for t1 in self.terms for t2 in other_poly.terms
-        ]
-        return Poly(terms)
-
     def multiply_with(self, other):
         if type(other) == _Term:
             raise ValueError("Use Poly contructors to build up terms.")
@@ -606,7 +602,7 @@ class Poly:
             return self.multiply_by_constant(other)
 
         enforce_type(other, Poly)
-        return self.multiply_by_poly(other)
+        return Poly.multiply_polys(self, other)
 
     def negated(self):
         """
@@ -703,6 +699,26 @@ class Poly:
         return Poly([_Term.constant(c)])
 
     @staticmethod
+    def multiply_polys(poly1, poly2):
+        """
+        We mostly rely on Poly.__init__ to do the heavy lifting here.
+        """
+        enforce_type(poly1, Poly)
+        enforce_type(poly2, Poly)
+
+        if poly1.is_zero() or poly2.is_zero():
+            return Poly.zero()
+        if poly1.is_one():
+            return poly2
+        if poly2.is_one():
+            return poly1
+
+        terms = [
+            _Term.multiply_terms(t1, t2) for t1 in poly1.terms for t2 in poly2.terms
+        ]
+        return Poly(terms)
+
+    @staticmethod
     def one():
         return Poly.constant(Value.one)
 
@@ -717,7 +733,9 @@ class Poly:
         if exponent == 0:
             return small_poly
         else:
-            return small_poly.multiply_by_poly(var_poly.raised_to_exponent(exponent))
+            return Poly.multiply_polys(
+                small_poly, var_poly.raised_to_exponent(exponent)
+            )
 
     @staticmethod
     def subtract_polys(poly1, poly2):

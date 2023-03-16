@@ -1,4 +1,4 @@
-from poly import _VarPower, _Term, Poly
+from poly import Poly
 
 """
 These are very raw tests that I built up while developing the 
@@ -7,24 +7,26 @@ library.
 For more polished examples see poly_example.py
 """
 
-vpn = _VarPower("n", 5)
-assert str(vpn) == "(n**5)"
-assert vpn.compute_power(2) == 32
-
-vpx = _VarPower("x", 3)
-assert str(vpx) == "(x**3)"
-assert vpx.compute_power(2) == 8
-
-# POLY TESTS
-
 x = Poly.var("x")
 y = Poly.var("y")
 z = Poly.var("z")
 h = Poly.var("height")
 n = Poly.var("n")
 zero = Poly.zero()
+one = Poly.one()
+
+assert zero.is_zero()
+assert one.is_one()
+assert not zero.is_one()
+assert not one.is_zero()
+
+assert (x - x).is_zero()
+assert x.apply(x=1).is_one()
 
 p = x + y
+assert not p.is_zero()
+assert not p.is_one()
+
 assert str(p) == "x+y"
 assert p.eval(x=5, y=2) == 7
 assert str(p.apply(x=8)) == "y+8"
