@@ -7,15 +7,27 @@ where each term includes a coefficient (which is integer
 by default) and then some subset of variables each raised
 to an integer power.
 
-You can add/multiply instances of Poly by either other
-Poly objects or constant values (again, integer by default).
-You can also exponentiate Poly objects to create new Poly objects.
-All Poly objects are immuatable.
+The key feature of this class is that it allows you to
+symbolically manipulate polynomials.
 
-It supports an arbitrary combination of variables, and for
-convenience sake, it prevents you from having punctuation
-characters in variables that would conflict with operators
-like +, -, *, etc.
+You can add/multiply instances of Poly with either (a) other
+Poly objects or (b) constant values (again, integer by default).
+You can also exponentiate Poly objects to create new Poly objects.
+All Poly objects are immutable.
+
+You can do things like composing polynomials from other polynomials,
+and all these operations happen at the symbolic level until you
+provide actual value assignments for the variables.
+
+Very importantly, the Poly class assumes that its values form a
+"commutative ring."  You don't need to understand that terminology
+in a deep sense, as long as you are playing with integers.
+Basically we assume that multiplication and addition conform
+to our standard intuitive notions of how numbers work.
+
+The Poly class supports an arbitrary combination of variables, and
+for convenience sake, it prevents variables from having punctuation
+characters that would conflict with operators like +, -, *, etc.
 
 I believe this project could be pretty easily modified to work
 with any commutative ring, but I have mostly tested with normal
@@ -23,12 +35,14 @@ integers and a Modulus class.
 
 I try to set up the structure here to allow for future extensions.
 
-Note that even over a non-integer field of values, we would still
-have to enforce non-negative integer exponents to support
-the "substitution" operation on polynomials.  Think of exponentiation
-as just a shorthand for repeated multiplication, so for our purposes
-exponents will always be actual positive integers.  We also allow
-exponents of zero, but they essentially get simplified away in Poly.
+ABOUT EXPONENTS (important):
+
+    Note that even over a non-integer-based set of values, we would still
+    have to enforce non-negative integer exponents to support
+    the "substitution" operation on polynomials.  Think of exponentiation
+    as just a shorthand for repeated multiplication, so for our purposes
+    exponents will always be actual positive integers.  We also allow
+    exponents of zero, but they essentially get simplified away in Poly.
 
 Useful references:
     * https://docs.python.org/3/library/operator.html
@@ -42,6 +56,20 @@ Value = integer.Integer
 
 
 def set_value_handler(handler):
+    """
+    Allow us to build up polynomials with a Value type that isn't
+    necessarily based on integers.  We rely on the caller to provide
+    a handler that behaves like integers in terms of algebraic structure.
+    See integer.py for the most obvious implementation of a handler.
+
+    Multiplication and addition should both be commutative and associative.
+
+    Addition should have a zero-like value such that a + Value.zero == a.
+
+    Multiplication should have a one-like value such a * Value.one == a.
+
+    Multiplication should also be distributive with respect to addition.
+    """
     global Value
     Value = handler
 
@@ -49,6 +77,12 @@ def set_value_handler(handler):
 def enforce_type(var, _type):
     if type(var) != _type:
         raise TypeError(f"{var} is not type {_type}")
+
+
+def enforce_legal_variable_name(var_name):
+    for c in ",*+/-()":
+        if c in var_name:
+            raise ValueError(f"Do not use variable names that include {c}.")
 
 
 class _VarPower:
@@ -63,17 +97,16 @@ class _VarPower:
     instead.
     """
 
-    def __init__(self, var, exponent):
-        enforce_type(var, str)
-        for c in ",*+/-()":
-            assert not c in var
+    def __init__(self, var_name, exponent):
+        enforce_type(var_name, str)
+        enforce_legal_variable_name(var_name)
         # We only handle positive powers of variables.
         # Constant values are handled by _Term.
         enforce_type(exponent, int)
         if exponent <= 0:
             raise ValueError("{exponent} is not positive")
 
-        self.var = var
+        self.var = var_name
         self.exponent = exponent
 
     def __str__(self):
