@@ -624,9 +624,11 @@ class Poly:
             raise ValueError("This only works for polynomials over a single variable")
 
         var_name = list(my_var_names)[0]
-        degree_coeffs = {term.degree_of_var(var_name): term.coeff for term in self.terms}
-        degrees = list(degree_coeffs.keys())
-        return [degree_coeffs.get(degree, 0) for degree in range(1 + max(degrees))]
+        degree_coeffs = {
+            term.degree_of_var(var_name): term.coeff for term in self.terms
+        }
+        max_degree = max(degree_coeffs)
+        return [degree_coeffs.get(degree, 0) for degree in range(1 + max_degree)]
 
     def put_terms_in_order(self):
         """
@@ -710,7 +712,7 @@ class Poly:
 
     def substitute(self, var_name, var_poly):
         """
-            assert (2 * x + 1).substitute("x", u + 3) == 2 * u + 7
+        assert (2 * x + 1).substitute("x", u + 3) == 2 * u + 7
         """
         enforce_type(var_name, str)
         enforce_type(var_poly, Poly)
