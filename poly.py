@@ -609,6 +609,24 @@ class Poly:
         return Poly([term.negate() for term in self.terms])
 
     def put_terms_in_order(self):
+        """
+        Let's say we have a polynomial over z, x, and y.
+
+        We always sort the variable names as x, y, and z.
+        (If a user is finicky about which terms they want to have
+        show earlier, they should choose the variable names wisely.)
+
+        Then we decide which term goes first by these tiebreakers:
+
+            - if t1 has a higher degree of x than t2, t1 goes first
+            - if t2 has a higher degree of x than t1, t2 goes first
+            - break the tie by looking at the y degrees
+            - break the tie by looking at the z degrees
+
+        We do this process as soon as we construct any Poly object,
+        and it is important that we are deterministic, as it allows
+        us to determine if two Poly objects are equivalent.
+        """
         if len(self.terms) <= 1:
             return
         sorted_vars = sorted(self.variables())
@@ -640,6 +658,9 @@ class Poly:
         And then you combine the two middle terms to 7x.
 
         That is what we do here in the more general sense.
+
+        (Note that we do the simplification process as soon as a
+        Poly object is constructed.)
         """
         terms = self.terms
         if len(terms) == 0:
@@ -668,6 +689,9 @@ class Poly:
         self.terms = new_terms
 
     def substitute(self, var_name, var_poly):
+        """
+            assert (2 * x + 1).substitute("x", u + 3) == 2 * u + 7
+        """
         enforce_type(var_name, str)
         enforce_type(var_poly, Poly)
         if var_name not in self.variables():
@@ -681,6 +705,13 @@ class Poly:
         return Poly.sum(new_polys)
 
     def transform_coefficients(self, f):
+        """
+        This lets you apply a function to all coefficients in your Poly,
+        and then you produce a new function.
+
+        This can be useful if you are studying things like congruence classes
+        of polynomials.
+        """
         assert callable(f)
         terms = [t.transform_coefficient(f) for t in self.terms]
         return Poly(terms)
@@ -697,12 +728,12 @@ class Poly:
         All the heavy lifting happens when we construct the
         new Poly--see __init__ for more context.
         """
+        enforce_type(poly1, Poly)
+        enforce_type(poly2, Poly)
         if poly1.is_zero():
             return poly2
         if poly2.is_zero():
             return poly1
-        enforce_type(poly1, Poly)
-        enforce_type(poly2, Poly)
         return Poly(poly1.terms + poly2.terms)
 
     @staticmethod
@@ -757,7 +788,7 @@ class Poly:
         enforce_type(poly2, Poly)
         if poly2.is_zero():
             return poly1
-        return poly1 + (-poly2)
+        return poly1 + poly2.negated()
 
     @staticmethod
     def sum(poly_list):
