@@ -8,7 +8,8 @@ by default) and then some collection of variables each raised
 to an integer power.
 
 The key feature of this class is that it allows you to
-symbolically manipulate polynomials.
+symbolically manipulate polynomials using natural Python
+operators.
 
     # Poly supports symbolic manipulation.
     assert_str((x + 1) * (x - 1), "(x**2)+(-1)")
@@ -129,15 +130,19 @@ class _VarPower:
 
         self.var_name = var_name
         self.exponent = exponent
+        self.sig = self.signature()
 
     def __str__(self):
-        if self.exponent == Math.one:
-            return self.var_name
-        return f"({self.var_name}**{self.exponent})"
+        return self.sig
 
     def compute_power(self, x):
         enforce_type(x, Math.value_type)
         return Math.power(x, self.exponent)
+
+    def signature(self):
+        if self.exponent == Math.one:
+            return self.var_name
+        return f"({self.var_name}**{self.exponent})"
 
 
 class _Term:
@@ -171,7 +176,7 @@ class _Term:
         self.var_powers = var_powers
         self.coeff = coeff
 
-        self.sig = "*".join(str(vp) for vp in var_powers)
+        self.sig = "*".join(vp.sig for vp in var_powers)
         self.var_dict = {vp.var_name: vp.exponent for vp in var_powers}
 
     def apply(self, **var_assignments):
