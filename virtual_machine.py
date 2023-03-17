@@ -60,6 +60,8 @@ Operation of a finite virtual machine:
         always_true [0, 1, 2, 3]
 """
 
+import sys
+sys.path.append("./polynomial")
 import stepper
 
 MAX_STEPS = 6

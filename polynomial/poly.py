@@ -582,8 +582,9 @@ class Poly:
             enforce_type(var_name, str)
             enforce_type(value, Math.value_type)
 
-            if var_name not in my_var_names:
-                raise ValueError(f"The var {var_name} is not in our polynomial")
+        for var_name in my_var_names:
+            if var_name not in var_assignments:
+                raise ValueError(f"The var {var_name} was not supplied.")
 
         result = Math.zero
         for term in self.terms:
