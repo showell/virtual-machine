@@ -150,4 +150,17 @@ assert_equal(q, (2 * u + 7) * (2 * y + 1) * z)
 assert_str(q, "4*u*y*z+2*u*z+14*y*z+7*z")
 assert_equal(q.variables(), {"u", "y", "z"})
 
+# If you have a large polynomial that you will need to evaluate
+# many times, then you can take advantage of the fact that the
+# polynomial strings are valid Python, and you can have Python
+# compile the expression on the fly.  For safety reasons I do not
+# provide a convenient way to do that from Poly itself, but the
+# pattern is pretty easy and provided below.
+p = (x + 5) * (y - 2) ** 3 + x ** 3 - y ** 4
+assert_str(p, "(x**3)+x*(y**3)+(-6)*x*(y**2)+12*x*y+(-8)*x+(-1)*(y**4)+5*(y**3)+(-30)*(y**2)+60*y+(-40)")
+p_code_object = compile(str(p), "p", "eval")
+evaled_value = eval(p_code_object, dict(x=152345, y=792))
+assert_equal(evaled_value, p.eval(x=152345, y=792))
+assert_equal(evaled_value, 3610495987987929)
+
 # See also poly_mod_example.py
