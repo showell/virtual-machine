@@ -182,9 +182,9 @@ class _Term:
     def apply(self, **var_assignments):
         """
         This substitutes variables in our term with actual
-        integers, producing a simpler Term.
+        values, producing a simpler Term.
 
-        If we get passed in vars that we don't know about,
+        If we get passed in var names that we don't know about,
         just ignore them.
 
         If none of the vars are in our term, then we just
@@ -321,12 +321,17 @@ class _Term:
         vps = [_VarPower(vp.var_name, vp.exponent * exponent) for vp in self.var_powers]
         return _Term(coeff, vps)
 
-    def sort_key(self, var_list):
+    def sort_key(self, var_names):
         """
         This is used by Poly to sort terms in the normal high
-        school algebra format.
+        school algebra format.  The var_names list comes from our
+        parent Poly.  See Poly.put_terms_in_order for more context.
         """
-        return tuple(self.var_dict.get(var, 0) for var in var_list)
+        enforce_type(var_names, list)
+        def exponent(var_name):
+            enforce_type(var_name, str)
+            return self.var_dict.get(var_name, 0)
+        return tuple(exponent(var_name) for var_name in var_names)
 
     def transform_coefficient(self, f):
         assert callable(f)
