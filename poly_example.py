@@ -150,14 +150,6 @@ assert_equal(q, (2 * u + 7) * (2 * y + 1) * z)
 assert_str(q, "4*u*y*z+2*u*z+14*y*z+7*z")
 assert_equal(q.variables(), {"u", "y", "z"})
 
-# Note that the polynomials do NOT keep track of how they are
-# constructed, so they are not necessarily optimal for muliple
-# calculations.
-horner = 1 + x * (2 + x * (3 + x * (4 + x * (5 + 6 * x))))
-assert_str(horner, "6*(x**5)+5*(x**4)+4*(x**3)+3*(x**2)+2*x+1")
-# ^^^^ And then horner.eval() actually computes x**4, x**3,
-#      and x**2 independently.
-
 # If you have a large polynomial that you will need to evaluate
 # many times, then you can take advantage of the fact that the
 # polynomial strings are valid Python, and you can have Python
@@ -174,4 +166,13 @@ evaled_value = eval(p_code_object, dict(x=152345, y=792))
 assert_equal(evaled_value, p.eval(x=152345, y=792))
 assert_equal(evaled_value, 3610495987987929)
 
-# See also poly_mod_example.py
+# Note that the polynomials do NOT keep track of how they are
+# constructed, so they are not necessarily optimal for muliple
+# evaluations over different variable assignments (even if you
+# use tricks like compiing them into Python code objects).
+horner = 1 + x * (2 + x * (3 + x * (4 + x * (5 + 6 * x))))
+assert_str(horner, "6*(x**5)+5*(x**4)+4*(x**3)+3*(x**2)+2*x+1")
+# ^^^^ And then horner.eval() actually computes x**5, x**4, x**3,
+#      and x**2 independently.
+
+# See also poly_mod_example.py and poly_fraction_example.py
