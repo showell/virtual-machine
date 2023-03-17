@@ -329,9 +329,11 @@ class _Term:
         parent Poly.  See Poly.put_terms_in_order for more context.
         """
         enforce_type(var_names, list)
+
         def exponent(var_name):
             enforce_type(var_name, str)
             return self.var_dict.get(var_name, 0)
+
         return tuple(exponent(var_name) for var_name in var_names)
 
     def transform_coefficient(self, f):
@@ -392,10 +394,12 @@ class _Term:
         if len(terms) < 1:
             raise ValueError("We expect at least one term to be summed.")
 
-        if len(terms) == 1:
-            return terms[0]
-
         term = terms[0]
+        enforce_type(term, _Term)
+
+        if len(terms) == 1:
+            return term
+
         sig = term.sig
         coeff = term.coeff
         for other in terms[1:]:
