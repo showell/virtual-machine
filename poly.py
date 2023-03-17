@@ -178,6 +178,7 @@ class _Term:
 
         self.sig = "*".join(vp.sig for vp in var_powers)
         self.var_dict = {vp.var_name: vp.exponent for vp in var_powers}
+        self.var_names = set(self.var_dict.keys())
 
     def apply(self, **var_assignments):
         """
@@ -240,9 +241,9 @@ class _Term:
             enforce_type(var, str)
             enforce_type(value, Math.value_type)
 
-        for var in self.variables():
-            if var not in var_assignments:
-                raise ValueError(f"You are not providing an assignment for {var}.")
+        for var_name in self.var_names:
+            if var_name not in var_assignments:
+                raise ValueError(f"You are not providing an assignment for {var_name}.")
 
         product = Math.one
         for vp in self.var_powers:
@@ -336,14 +337,6 @@ class _Term:
     def transform_coefficient(self, f):
         assert callable(f)
         return _Term(f(self.coeff), self.var_powers)
-
-    def variables(self):
-        """
-        If self represents something like 5*a*b*c, this method
-        returns {"a", "b", "c"}.  This helps Poly determine the
-        set of variables across all terms.
-        """
-        return set(self.var_dict.keys())
 
     @staticmethod
     def constant(c):
@@ -693,7 +686,7 @@ class Poly:
     def variables(self):
         vars = set()
         for term in self.terms:
-            vars |= term.variables()
+            vars |= term.var_names
         return vars
 
     @staticmethod
