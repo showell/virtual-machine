@@ -92,6 +92,12 @@ def enforce_legal_variable_name(var_name):
             raise ValueError(f"Do not use variable names that include {c}.")
 
 
+def enforce_list_element_types(lst, _type):
+    enforce_type(lst, list)
+    for elem in lst:
+        enforce_type(elem, _type)
+
+
 def enforce_sorted_distinct_list(lst):
     enforce_type(lst, list)
 
@@ -166,9 +172,7 @@ class _Term:
     def __init__(self, coeff, var_powers):
         enforce_type(coeff, Math.value_type)
 
-        enforce_type(var_powers, list)
-        for var_power in var_powers:
-            enforce_type(var_power, _VarPower)
+        enforce_list_element_types(var_powers, _VarPower)
 
         var_names = [vp.var_name for vp in var_powers]
         enforce_sorted_distinct_list(var_names)
@@ -328,10 +332,9 @@ class _Term:
         school algebra format.  The var_names list comes from our
         parent Poly.  See Poly.put_terms_in_order for more context.
         """
-        enforce_type(var_names, list)
+        enforce_list_element_types(var_names, str)
 
         def exponent(var_name):
-            enforce_type(var_name, str)
             return self.var_dict.get(var_name, 0)
 
         return tuple(exponent(var_name) for var_name in var_names)
@@ -394,8 +397,8 @@ class _Term:
         if len(terms) < 1:
             raise ValueError("We expect at least one term to be summed.")
 
+        enforce_list_element_types(terms, _Term)
         term = terms[0]
-        enforce_type(term, _Term)
 
         if len(terms) == 1:
             return term
@@ -403,7 +406,6 @@ class _Term:
         sig = term.sig
         coeff = term.coeff
         for other in terms[1:]:
-            enforce_type(other, _Term)
             if other.sig != sig:
                 raise AssertionError("We cannot combine unlike terms!!!")
             coeff = Math.add(coeff, other.coeff)
@@ -421,9 +423,7 @@ class Poly:
             raise ValueError(
                 "Pass in a list of _Terms or use Poly's other constructors."
             )
-        enforce_type(terms, list)
-        for term in terms:
-            enforce_type(term, _Term)
+        enforce_list_element_types(terms, _Term)
         self.terms = terms
 
         """
@@ -572,7 +572,8 @@ class Poly:
         if len(set(var_assignments)) < len(my_vars):
             raise ValueError("Not enough variables supplied. Maybe use apply?")
 
-        for var, value in var_assignments.items():
+        for var_name, value in var_assignments.items():
+            enforce_type(var_name, str)
             enforce_type(value, Math.value_type)
 
         result = Math.zero
@@ -763,9 +764,7 @@ class Poly:
         but this should be faster, since it avoids creating a bunch
         of intermediate partial polynomial sums for large lists.
         """
-        enforce_type(poly_list, list)
-        for poly in poly_list:
-            enforce_type(poly, Poly)
+        enforce_list_element_types(poly_list, Poly)
 
         if len(poly_list) == 0:
             return Poly.zero()
