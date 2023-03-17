@@ -231,6 +231,13 @@ class _Term:
         c = self.coeff
         return str(c) if c > 0 else f"({c})"
 
+    def degree_of_var(self, var_name):
+        """
+        For 5*(x**2)*(z**11), t.degree_of_var("z") = 1
+        """
+        enforce_type(var_name, str)
+        return self.var_dict.get(var_name, 0)
+
     def eval(self, **var_assignments):
         """
         This function returns the actual numerical value of
@@ -607,6 +614,19 @@ class Poly:
         This is the additive inverse.
         """
         return Poly([term.negate() for term in self.terms])
+
+    def numpy_vector(self):
+        """
+        See numpy_example.py for more context.
+        """
+        my_var_names = self.variables()
+        if len(my_var_names) != 1:
+            raise ValueError("This only works for polynomials over a single variable")
+
+        var_name = list(my_var_names)[0]
+        degree_coeffs = {term.degree_of_var(var_name): term.coeff for term in self.terms}
+        degrees = list(degree_coeffs.keys())
+        return [degree_coeffs.get(degree, 0) for degree in range(1 + max(degrees))]
 
     def put_terms_in_order(self):
         """
