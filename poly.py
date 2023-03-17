@@ -523,6 +523,7 @@ class Poly:
             return Poly.add_polys(self, other)
 
     def add_with_constant(self, c):
+        enforce_type(c, Math.value_type)
         if c == Math.zero:
             # take advantage of immutability
             return self
@@ -568,13 +569,14 @@ class Poly:
         This method converts a Poly to a Math value (e.g. integer) by
         using the supplied variable assignments.
         """
-        my_vars = self.variables()
-        if len(set(var_assignments)) < len(my_vars):
-            raise ValueError("Not enough variables supplied. Maybe use apply?")
+        my_var_names = self.variables()
 
         for var_name, value in var_assignments.items():
             enforce_type(var_name, str)
             enforce_type(value, Math.value_type)
+
+            if var_name not in my_var_names:
+                raise ValueError(f"The var {var_name} is not in our polynomial")
 
         result = Math.zero
         for term in self.terms:
