@@ -411,11 +411,6 @@ class _Term:
         return _Term(coeff, term.var_powers)
 
     @staticmethod
-    def var(var):
-        enforce_type(var, str)
-        return _Term(Math.one, [_VarPower(var, Math.one)])
-
-    @staticmethod
     def zero():
         return _Term(Math.zero, [])
 
