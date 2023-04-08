@@ -98,7 +98,6 @@ STEP_POLYNOMIALS = construct_polynomials(
     op_lb=VAR("op_lb"),
 )
 
-
 def step(*, AX, halted, accepted, op):
     assert AX in [0, 1, 2, 3]
     assert halted in [0, 1]
