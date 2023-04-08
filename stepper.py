@@ -17,10 +17,6 @@ def OR(x, y):
     return (x + y) - (x * y)
 
 
-def OR3(x, y, z):
-    return OR(OR(x, y), z)
-
-
 def OR4(w, x, y, z):
     return OR(OR(w, x), OR(y, z))
 
