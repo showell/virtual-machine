@@ -1,6 +1,6 @@
 """
 Operation of a finite virtual machine:
-    
+
     single register called AX
 
     We only use two-bit numbers: {0, 1, 2, 3}.
@@ -9,10 +9,10 @@ Operation of a finite virtual machine:
 
     Every program is a sequence of these opcodes (aka instructions):
 
-        00 (pass):
+        00 (nada):
             (do nothing)
 
-        01 (check):
+        01 (zero):
             AX = 3 -> ignore and continue
             AX = 2 -> ignore and continue
             AX = 1 -> ignore and continue
@@ -75,9 +75,9 @@ def run_progam(n, program):
     for op in program:
         if halted:
             continue
-        if op == "pass":
+        if op == "nada":
             pass
-        elif op == "check":
+        elif op == "zero":
             if AX == 0:
                 halted = True
                 status = True
@@ -97,7 +97,7 @@ def run_progam(n, program):
     return status
 
 
-OPS = {"pass": 0, "check": 1, "decr": 2, "mod2": 3}
+OPS = {"nada": 0, "zero": 1, "decr": 2, "mod2": 3}
 
 
 def test_with_stepper(program, ax):
@@ -119,7 +119,7 @@ def assemble(program):
 
 
 def disassemble(n):
-    ops = ["pass", "check", "decr", "mod2"]
+    ops = ["nada", "zero", "decr", "mod2"]
     program = []
     for i in range(MAX_STEPS):
         program.append(ops[n % 4])
@@ -127,8 +127,8 @@ def disassemble(n):
     return program
 
 
-assert assemble(["check", "decr"]) == 9
-assert disassemble(9) == ["check", "decr"] + ["pass"] * (MAX_STEPS - 2)
+assert assemble(["zero", "decr"]) == 9
+assert disassemble(9) == ["zero", "decr"] + ["nada"] * (MAX_STEPS - 2)
 
 
 def encoded_language(lang):
@@ -160,6 +160,15 @@ def f(program_number):
             lang.append(i)
     return encoded_language(lang)
 
+comment = dict(
+    nada="# do nothing",
+    decr="# reject zero or decrement AX",
+    mod2="# subtract 2 from AX if AX >= 2",
+    zero="# accept original input if AX = 0",
+)
+
+def complement(lang):
+    return [i for i in range(4) if i not in lang]
 
 def find_solutions():
     solutions = {}
@@ -173,14 +182,17 @@ def find_solutions():
 
     for y in range(16):
         lang = language(y)
+        rejected_lang = complement(lang)
         x_list = solutions[y]
         programs = [disassemble(x) for x in x_list]
-        print(f"f(x) = {y} for {len(x_list)} values of x")
-        print(f" an example program to recognize {lang} is:")
+        print(f"{lang} is solved by {len(x_list)} possible program")
+        print(f"See an example program below.")
+        print(f"   it accepts {lang}")
+        print(f"   it rejects {rejected_lang}")
         print("--")
         example_program = programs[0]
         for cmd in example_program:
-            print(cmd)
+            print(cmd, comment[cmd])
         print("--")
         print()
 
