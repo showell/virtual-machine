@@ -123,10 +123,6 @@ def disassemble(n):
     return program
 
 
-assert assemble(["zero", "decr"]) == 9
-assert disassemble(9) == ["zero", "decr"] + ["nada"] * (MAX_STEPS - 2)
-
-
 def encoded_language(lang):
     return sum(2**n for n in lang)
 
@@ -140,12 +136,6 @@ def language(code):
         code = code // 2
         i += 1
     return lang
-
-
-assert encoded_language([]) == 0
-assert language(0) == []
-assert encoded_language([1, 3]) == 10
-assert language(10) == [1, 3]
 
 
 def get_language_that_program_accepts(program):
@@ -192,5 +182,15 @@ def find_solutions():
             accepted = stepper.test_with_stepper(example_program, i)
             assert accepted == (i in lang)
 
+def test():
+    assert assemble(["zero", "decr"]) == 9
+    assert disassemble(9) == ["zero", "decr"] + ["nada"] * (MAX_STEPS - 2)
 
+    assert encoded_language([]) == 0
+    assert language(0) == []
+    assert encoded_language([1, 3]) == 10
+    assert language(10) == [1, 3]
+
+
+test()
 find_solutions()
