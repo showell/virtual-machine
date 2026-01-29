@@ -63,12 +63,7 @@ Operation of a finite virtual machine:
 import stepper
 
 MAX_STEPS = 6
-OPS = dict(
-    nada=0,
-    zero=1,
-    decr=2,
-    mod2=3
-)
+OPS = dict(nada=0, zero=1, decr=2, mod2=3)
 
 COMMENT = dict(
     nada="# do nothing",
@@ -145,8 +140,10 @@ def get_language_that_program_accepts(program):
             lang.append(i)
     return lang
 
+
 def complement(lang):
     return [i for i in range(4) if i not in lang]
+
 
 def find_solutions():
     solutions = {}
@@ -181,6 +178,7 @@ def find_solutions():
         for i in range(4):
             accepted = stepper.test_with_stepper(example_program, i)
             assert accepted == (i in lang)
+
 
 def test():
     assert assemble(["zero", "decr"]) == 9
