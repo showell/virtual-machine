@@ -63,7 +63,19 @@ Operation of a finite virtual machine:
 import stepper
 
 MAX_STEPS = 6
-OPS = {"nada": 0, "zero": 1, "decr": 2, "mod2": 3}
+OPS = dict(
+    nada=0,
+    zero=1,
+    decr=2,
+    mod2=3
+)
+
+COMMENT = dict(
+    nada="# do nothing",
+    decr="# reject zero or decrement AX",
+    mod2="# subtract 2 from AX if AX >= 2",
+    zero="# accept original input if AX = 0",
+)
 
 
 def run_progam(n, program):
@@ -96,7 +108,6 @@ def run_progam(n, program):
             assert False
 
     return status
-
 
 
 def assemble(program):
@@ -137,30 +148,26 @@ assert encoded_language([1, 3]) == 10
 assert language(10) == [1, 3]
 
 
-def f(program_number):
+def get_language_that_program_accepts(program):
     lang = []
-    program = disassemble(program_number)
     for i in range(4):
         if run_progam(i, program):
             lang.append(i)
-    return encoded_language(lang)
-
-comment = dict(
-    nada="# do nothing",
-    decr="# reject zero or decrement AX",
-    mod2="# subtract 2 from AX if AX >= 2",
-    zero="# accept original input if AX = 0",
-)
+    return lang
 
 def complement(lang):
     return [i for i in range(4) if i not in lang]
 
 def find_solutions():
     solutions = {}
+
     for y in range(16):
         solutions[y] = []
-    for x in range(4**MAX_STEPS):
-        solutions[f(x)].append(x)
+
+    for program_number in range(4**MAX_STEPS):
+        program = disassemble(program_number)
+        lang = get_language_that_program_accepts(program)
+        solutions[encoded_language(lang)].append(program_number)
 
     for y in range(16):
         assert len(solutions[y]) > 0
@@ -177,7 +184,7 @@ def find_solutions():
         print("--")
         example_program = programs[0]
         for cmd in example_program:
-            print(cmd, comment[cmd])
+            print(cmd, COMMENT[cmd])
         print("--")
         print()
 
