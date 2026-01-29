@@ -63,6 +63,7 @@ Operation of a finite virtual machine:
 import stepper
 
 MAX_STEPS = 6
+OPS = {"nada": 0, "zero": 1, "decr": 2, "mod2": 3}
 
 
 def run_progam(n, program):
@@ -96,22 +97,6 @@ def run_progam(n, program):
 
     return status
 
-
-OPS = {"nada": 0, "zero": 1, "decr": 2, "mod2": 3}
-
-
-def test_with_stepper(program, ax):
-    AX = ax
-    halted = False
-    accepted = False
-    for cmd in program:
-        (AX, halted, accepted) = stepper.step(
-            AX=AX,
-            halted=halted,
-            accepted=accepted,
-            op=OPS[cmd],
-        )
-    return accepted
 
 
 def assemble(program):
@@ -197,7 +182,7 @@ def find_solutions():
         print()
 
         for i in range(4):
-            accepted = test_with_stepper(example_program, i)
+            accepted = stepper.test_with_stepper(example_program, i)
             assert accepted == (i in lang)
 
 

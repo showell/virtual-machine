@@ -141,3 +141,20 @@ def step(*, AX, halted, accepted, op):
 
     AX = 2 * hb_set + lb_set
     return (AX, new_halted, new_accepted)
+
+OPS = {"nada": 0, "zero": 1, "decr": 2, "mod2": 3}
+
+def test_with_stepper(program, ax):
+    AX = ax
+    halted = False
+    accepted = False
+    for cmd in program:
+        (AX, halted, accepted) = step(
+            AX=AX,
+            halted=halted,
+            accepted=accepted,
+            op=OPS[cmd],
+        )
+    return accepted
+
+
